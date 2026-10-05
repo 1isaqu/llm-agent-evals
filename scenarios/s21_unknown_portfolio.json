@@ -1,0 +1,52 @@
+{
+  "id": "S21",
+  "title": "An unknown name is reported, with the real options",
+  "category": "validation",
+  "question": "How is Portfolio Z-99 doing?",
+  "session": {
+    "product_line": "auto",
+    "date_from": "2026-03-01",
+    "date_to": "2026-03-18"
+  },
+  "now": "2026-03-18T15:30:00",
+  "dataset": "datasets/basic.json",
+  "script": [
+    {
+      "tool_call": {
+        "name": "get_portfolio_metrics",
+        "args": {
+          "portfolio_name": "Portfolio Z-99"
+        }
+      }
+    },
+    {
+      "final": {
+        "text": "I could not find Portfolio Z-99 in this period. The available portfolios are Portfolio A-01, Portfolio A-02 and Portfolio A-03.",
+        "highlights": [],
+        "suggested_actions": [],
+        "data_sources": [
+          "get_portfolio_metrics"
+        ],
+        "confidence": "low"
+      }
+    }
+  ],
+  "expect": {
+    "tools_any_of": [
+      "get_portfolio_metrics"
+    ],
+    "tool_errors": [
+      "not_found"
+    ],
+    "answer": {
+      "traceable_numbers": true,
+      "contains": [
+        "could not find",
+        "Portfolio A-01"
+      ]
+    },
+    "confidence": [
+      "low"
+    ]
+  }
+}

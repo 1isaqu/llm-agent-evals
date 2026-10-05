@@ -1,0 +1,47 @@
+{
+  "id": "X05",
+  "title": "A different metric reported as conversion",
+  "category": "self_test",
+  "question": "What is Agent 03's conversion?",
+  "session": {
+    "product_line": "auto",
+    "date_from": "2026-03-01",
+    "date_to": "2026-03-18"
+  },
+  "now": "2026-03-18T15:30:00",
+  "dataset": "datasets/basic.json",
+  "script": [
+    {
+      "tool_call": {
+        "name": "get_agent_performance",
+        "args": {
+          "agent_name": "agent_03"
+        }
+      }
+    },
+    {
+      "final": {
+        "text": "**Agent 03** conversion is **24.0%**.",
+        "highlights": [],
+        "suggested_actions": [],
+        "data_sources": [
+          "get_agent_performance"
+        ],
+        "confidence": "high"
+      }
+    }
+  ],
+  "expect": {
+    "should_pass": false,
+    "expect_violations": [
+      "answer_text:forbidden_text"
+    ],
+    "answer": {
+      "traceable_numbers": true,
+      "forbidden": [
+        "24.0%"
+      ]
+    }
+  },
+  "notes": "Self-test: the harness must report the declared violation."
+}

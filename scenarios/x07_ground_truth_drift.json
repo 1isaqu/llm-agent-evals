@@ -1,0 +1,48 @@
+{
+  "id": "X07",
+  "title": "A hand-computed value that the analytics no longer returns",
+  "category": "self_test",
+  "question": "How is Portfolio A-02?",
+  "session": {
+    "product_line": "auto",
+    "date_from": "2026-03-01",
+    "date_to": "2026-03-18"
+  },
+  "now": "2026-03-18T15:30:00",
+  "dataset": "datasets/basic.json",
+  "script": [
+    {
+      "tool_call": {
+        "name": "get_portfolio_metrics",
+        "args": {
+          "portfolio_name": "Portfolio A-02"
+        }
+      }
+    },
+    {
+      "final": {
+        "text": "**Portfolio A-02** is at **medium** risk (**25.0%**).",
+        "highlights": [],
+        "suggested_actions": [],
+        "data_sources": [
+          "get_portfolio_metrics"
+        ],
+        "confidence": "high"
+      }
+    }
+  ],
+  "expect": {
+    "should_pass": false,
+    "expect_violations": [
+      "ground_truth:value_mismatch"
+    ],
+    "ground_truth": [
+      {
+        "tool": "get_portfolio_metrics",
+        "path": "composite_risk_pct",
+        "equals": 99.0
+      }
+    ]
+  },
+  "notes": "Self-test: the harness must report the declared violation. The declared expectation is deliberately wrong, as a regression would be."
+}

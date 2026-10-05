@@ -1,0 +1,65 @@
+{
+  "id": "S03",
+  "title": "Conversion is not paid-per-CPC",
+  "category": "trap",
+  "question": "What is the conversion rate of Agent 03?",
+  "session": {
+    "product_line": "auto",
+    "date_from": "2026-03-01",
+    "date_to": "2026-03-18"
+  },
+  "now": "2026-03-18T15:30:00",
+  "dataset": "datasets/basic.json",
+  "script": [
+    {
+      "tool_call": {
+        "name": "get_agent_performance",
+        "args": {
+          "agent_name": "agent_03"
+        }
+      }
+    },
+    {
+      "final": {
+        "text": "**Agent 03** converted **32.0%** of right-party contacts: 8 agreements over 25 contacts, with an average ticket of **$600.00**.",
+        "highlights": [],
+        "suggested_actions": [],
+        "data_sources": [
+          "get_agent_performance"
+        ],
+        "confidence": "high"
+      }
+    }
+  ],
+  "expect": {
+    "tools_any_of": [
+      "get_agent_performance"
+    ],
+    "answer": {
+      "traceable_numbers": true,
+      "forbidden": [
+        "24.0%"
+      ],
+      "contains": [
+        "32.0%"
+      ]
+    },
+    "ground_truth": [
+      {
+        "tool": "get_agent_performance",
+        "path": "conversion_pct",
+        "equals": 32.0
+      },
+      {
+        "tool": "get_agent_performance",
+        "path": "paid_per_cpc_pct",
+        "equals": 24.0
+      },
+      {
+        "tool": "get_agent_performance",
+        "path": "avg_ticket",
+        "equals": 600.0
+      }
+    ]
+  }
+}

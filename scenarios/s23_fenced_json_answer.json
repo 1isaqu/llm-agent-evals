@@ -1,0 +1,39 @@
+{
+  "id": "S23",
+  "title": "A fenced JSON answer with a raw line break still parses",
+  "category": "format",
+  "question": "How is Portfolio A-02?",
+  "session": {
+    "product_line": "auto",
+    "date_from": "2026-03-01",
+    "date_to": "2026-03-18"
+  },
+  "now": "2026-03-18T15:30:00",
+  "dataset": "datasets/basic.json",
+  "script": [
+    {
+      "tool_call": {
+        "name": "get_portfolio_metrics",
+        "args": {
+          "portfolio_name": "Portfolio A-02"
+        }
+      }
+    },
+    {
+      "text": "```json\n{\"text\": \"**Portfolio A-02** is at medium risk.\nComposite risk is **25.0%**.\", \"highlights\": [], \"suggested_actions\": [], \"data_sources\": [\"get_portfolio_metrics\"], \"confidence\": \"high\"}\n```"
+    }
+  ],
+  "expect": {
+    "tools_any_of": [
+      "get_portfolio_metrics"
+    ],
+    "answer": {
+      "traceable_numbers": true,
+      "contains": [
+        "Portfolio A-02",
+        "25.0%"
+      ]
+    },
+    "format_ok": true
+  }
+}

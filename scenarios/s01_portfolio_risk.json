@@ -1,0 +1,83 @@
+{
+  "id": "S01",
+  "title": "Risk of one portfolio, factual",
+  "category": "factual",
+  "question": "How risky is Portfolio A-02?",
+  "session": {
+    "product_line": "auto",
+    "date_from": "2026-03-01",
+    "date_to": "2026-03-18"
+  },
+  "now": "2026-03-18T15:30:00",
+  "dataset": "datasets/basic.json",
+  "script": [
+    {
+      "tool_call": {
+        "name": "get_portfolio_metrics",
+        "args": {
+          "portfolio_name": "Portfolio A-02"
+        }
+      }
+    },
+    {
+      "final": {
+        "text": "**Portfolio A-02** is at **medium** risk. Composite risk is **25.0%**, driven by broken agreements (**25.0%**). It generated **$4,000.00** in first installments across 8 agreements.",
+        "highlights": [
+          {
+            "type": "metric",
+            "label": "Composite risk",
+            "value": "25.0%"
+          }
+        ],
+        "suggested_actions": [],
+        "data_sources": [
+          "get_portfolio_metrics"
+        ],
+        "confidence": "high"
+      }
+    }
+  ],
+  "expect": {
+    "tools_any_of": [
+      "get_portfolio_metrics"
+    ],
+    "params": [
+      {
+        "tool": "get_portfolio_metrics",
+        "contains": {
+          "portfolio_name": "Portfolio A-02"
+        }
+      }
+    ],
+    "answer": {
+      "traceable_numbers": true,
+      "forbidden": [
+        "approximately"
+      ],
+      "contains": [
+        "medium",
+        "25.0%"
+      ]
+    },
+    "ground_truth": [
+      {
+        "tool": "get_portfolio_metrics",
+        "path": "composite_risk_pct",
+        "equals": 25.0
+      },
+      {
+        "tool": "get_portfolio_metrics",
+        "path": "first_installment_value",
+        "equals": 4000.0
+      },
+      {
+        "tool": "get_portfolio_metrics",
+        "path": "breakdown.broken_pct",
+        "equals": 25.0
+      }
+    ],
+    "confidence": [
+      "high"
+    ]
+  }
+}

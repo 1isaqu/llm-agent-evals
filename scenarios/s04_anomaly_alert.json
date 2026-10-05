@@ -1,0 +1,152 @@
+{
+  "id": "S04",
+  "title": "A corrupt portfolio is flagged, not corrected",
+  "category": "trap",
+  "question": "What is the risk of Portfolio A-09?",
+  "session": {
+    "product_line": "auto",
+    "date_from": "2026-03-01",
+    "date_to": "2026-03-18"
+  },
+  "now": "2026-03-18T15:30:00",
+  "dataset": "datasets/basic.json",
+  "dataset_patch": {
+    "auto": {
+      "status_rollup": [
+        {
+          "portfolio_name": "Portfolio A-01",
+          "status_id": 10,
+          "qty": 8,
+          "amount": 4000.0
+        },
+        {
+          "portfolio_name": "Portfolio A-01",
+          "status_id": 30,
+          "qty": 2,
+          "amount": 1000.0
+        },
+        {
+          "portfolio_name": "Portfolio A-01",
+          "status_id": 20,
+          "qty": 2,
+          "amount": 1000.0
+        },
+        {
+          "portfolio_name": "Portfolio A-01",
+          "status_id": 40,
+          "qty": 1,
+          "amount": 500.0
+        },
+        {
+          "portfolio_name": "Portfolio A-02",
+          "status_id": 10,
+          "qty": 5,
+          "amount": 2500.0
+        },
+        {
+          "portfolio_name": "Portfolio A-02",
+          "status_id": 20,
+          "qty": 3,
+          "amount": 1500.0
+        },
+        {
+          "portfolio_name": "Portfolio A-02",
+          "status_id": 40,
+          "qty": 2,
+          "amount": 1000.0
+        },
+        {
+          "portfolio_name": "Portfolio A-02",
+          "status_id": 50,
+          "qty": 2,
+          "amount": 1000.0
+        },
+        {
+          "portfolio_name": "Portfolio A-03",
+          "status_id": 10,
+          "qty": 4,
+          "amount": 2000.0
+        },
+        {
+          "portfolio_name": "Portfolio A-03",
+          "status_id": 20,
+          "qty": 4,
+          "amount": 2000.0
+        },
+        {
+          "portfolio_name": "Portfolio A-03",
+          "status_id": 40,
+          "qty": 6,
+          "amount": 3000.0
+        },
+        {
+          "portfolio_name": "Portfolio A-09",
+          "status_id": 10,
+          "qty": 1,
+          "amount": -1000.0
+        },
+        {
+          "portfolio_name": "Portfolio A-09",
+          "status_id": 40,
+          "qty": 2,
+          "amount": 2500.0
+        }
+      ]
+    }
+  },
+  "script": [
+    {
+      "tool_call": {
+        "name": "get_portfolio_metrics",
+        "args": {
+          "portfolio_name": "Portfolio A-09"
+        }
+      }
+    },
+    {
+      "final": {
+        "text": "ALERT: **Portfolio A-09** shows a composite risk of **166.67%** (high), driven by exceptions (**166.67%**). No axis can exceed the whole first-installment universe, so the source data looks corrupt (for example negative amounts). Audit this portfolio before deciding anything.",
+        "highlights": [
+          {
+            "type": "anomaly",
+            "label": "Portfolio A-09",
+            "value": "166.67%"
+          }
+        ],
+        "suggested_actions": [],
+        "data_sources": [
+          "get_portfolio_metrics"
+        ],
+        "confidence": "low"
+      }
+    }
+  ],
+  "expect": {
+    "tools_any_of": [
+      "get_portfolio_metrics"
+    ],
+    "answer": {
+      "traceable_numbers": true,
+      "contains": [
+        "ALERT",
+        "corrupt"
+      ]
+    },
+    "ground_truth": [
+      {
+        "tool": "get_portfolio_metrics",
+        "path": "anomaly",
+        "equals": 1
+      },
+      {
+        "tool": "get_portfolio_metrics",
+        "path": "composite_risk_pct",
+        "equals": 166.67
+      }
+    ],
+    "confidence": [
+      "low"
+    ]
+  },
+  "notes": "Negative generated amount: the only way an axis can leave 0..100%."
+}

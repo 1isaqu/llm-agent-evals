@@ -1,0 +1,75 @@
+{
+  "id": "S11",
+  "title": "Two calls: find the riskiest portfolio, then who drives it",
+  "category": "multi_hop",
+  "question": "Who generates the exceptions of the highest-risk portfolio?",
+  "session": {
+    "product_line": "auto",
+    "date_from": "2026-03-01",
+    "date_to": "2026-03-18"
+  },
+  "now": "2026-03-18T15:30:00",
+  "dataset": "datasets/basic.json",
+  "script": [
+    {
+      "tool_call": {
+        "name": "filter_portfolios_by_risk",
+        "args": {
+          "level": "high"
+        }
+      }
+    },
+    {
+      "tool_call": {
+        "name": "get_agent_portfolio_crosstab",
+        "args": {
+          "portfolio": "Portfolio A-03"
+        }
+      }
+    },
+    {
+      "final": {
+        "text": "The highest-risk portfolio is **Portfolio A-03** (**42.86%**). Its exceptions come mostly from **Agent 03** (**$2,000.00**) and **Agent 04** (**$1,000.00**).",
+        "highlights": [],
+        "suggested_actions": [],
+        "data_sources": [
+          "filter_portfolios_by_risk",
+          "get_agent_portfolio_crosstab"
+        ],
+        "confidence": "high"
+      }
+    }
+  ],
+  "expect": {
+    "tools_all_of": [
+      "filter_portfolios_by_risk",
+      "get_agent_portfolio_crosstab"
+    ],
+    "params": [
+      {
+        "tool": "get_agent_portfolio_crosstab",
+        "contains": {
+          "portfolio": "Portfolio A-03"
+        },
+        "absent": [
+          "agent_name"
+        ]
+      }
+    ],
+    "answer": {
+      "traceable_numbers": true
+    },
+    "ground_truth": [
+      {
+        "tool": "get_agent_portfolio_crosstab",
+        "path": "entries.0.exception_value",
+        "equals": 2000.0
+      },
+      {
+        "tool": "get_agent_portfolio_crosstab",
+        "path": "entries.1.exception_value",
+        "equals": 1000.0
+      }
+    ]
+  }
+}

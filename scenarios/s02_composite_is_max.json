@@ -1,0 +1,65 @@
+{
+  "id": "S02",
+  "title": "Composite risk is the worst axis, never the sum",
+  "category": "trap",
+  "question": "What is the composite risk of Portfolio A-03 and how is it built?",
+  "session": {
+    "product_line": "auto",
+    "date_from": "2026-03-01",
+    "date_to": "2026-03-18"
+  },
+  "now": "2026-03-18T15:30:00",
+  "dataset": "datasets/basic.json",
+  "script": [
+    {
+      "tool_call": {
+        "name": "get_portfolio_metrics",
+        "args": {
+          "portfolio_name": "Portfolio A-03"
+        }
+      }
+    },
+    {
+      "final": {
+        "text": "**Portfolio A-03** has a composite risk of **42.86%**, the **maximum** of its three axes: exceptions **42.86%**, broken **28.57%** and rejected **0.0%**. The axes overlap, so they are never added.",
+        "highlights": [],
+        "suggested_actions": [],
+        "data_sources": [
+          "get_portfolio_metrics"
+        ],
+        "confidence": "high"
+      }
+    }
+  ],
+  "expect": {
+    "tools_any_of": [
+      "get_portfolio_metrics"
+    ],
+    "answer": {
+      "traceable_numbers": true,
+      "forbidden": [
+        "71.43"
+      ],
+      "contains": [
+        "maximum"
+      ]
+    },
+    "ground_truth": [
+      {
+        "tool": "get_portfolio_metrics",
+        "path": "composite_risk_pct",
+        "equals": 42.86
+      },
+      {
+        "tool": "get_portfolio_metrics",
+        "path": "breakdown.exception_pct",
+        "equals": 42.86
+      },
+      {
+        "tool": "get_portfolio_metrics",
+        "path": "breakdown.broken_pct",
+        "equals": 28.57
+      }
+    ]
+  }
+}

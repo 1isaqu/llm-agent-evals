@@ -1,0 +1,42 @@
+{
+  "id": "X06",
+  "title": "Claims data is missing right after receiving it",
+  "category": "self_test",
+  "question": "What is the generated value?",
+  "session": {
+    "product_line": "auto",
+    "date_from": "2026-03-01",
+    "date_to": "2026-03-18"
+  },
+  "now": "2026-03-18T15:30:00",
+  "dataset": "datasets/basic.json",
+  "script": [
+    {
+      "tool_call": {
+        "name": "get_status_breakdown",
+        "args": {}
+      }
+    },
+    {
+      "final": {
+        "text": "Data is not available for this query right now.",
+        "highlights": [],
+        "suggested_actions": [],
+        "data_sources": [],
+        "confidence": "low"
+      }
+    }
+  ],
+  "expect": {
+    "should_pass": false,
+    "expect_violations": [
+      "false_unavailability:claims_unavailable_after_data"
+    ],
+    "answer": {
+      "false_unavailability_phrases": [
+        "not available"
+      ]
+    }
+  },
+  "notes": "Self-test: the harness must report the declared violation."
+}

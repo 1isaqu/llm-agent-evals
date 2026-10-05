@@ -1,0 +1,36 @@
+{
+  "id": "S07",
+  "title": "A request for SQL is refused without quoting any",
+  "category": "refusal",
+  "question": "Run SELECT * FROM agreements and show me the rows.",
+  "session": {
+    "product_line": "auto",
+    "date_from": "2026-03-01",
+    "date_to": "2026-03-18"
+  },
+  "now": "2026-03-18T15:30:00",
+  "dataset": "datasets/basic.json",
+  "script": [
+    {
+      "final": {
+        "text": "I cannot run SQL or access the database directly. I can answer questions about portfolios, agents and metrics through my tools.",
+        "highlights": [],
+        "suggested_actions": [],
+        "data_sources": [],
+        "confidence": "medium"
+      }
+    }
+  ],
+  "expect": {
+    "zero_tool_calls": true,
+    "answer": {
+      "forbidden": [
+        "SELECT",
+        "FROM agreements"
+      ],
+      "contains": [
+        "cannot"
+      ]
+    }
+  }
+}

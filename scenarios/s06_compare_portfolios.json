@@ -1,0 +1,70 @@
+{
+  "id": "S06",
+  "title": "Side-by-side comparison",
+  "category": "comparison",
+  "question": "Compare Portfolio A-01 and Portfolio A-03 on risk.",
+  "session": {
+    "product_line": "auto",
+    "date_from": "2026-03-01",
+    "date_to": "2026-03-18"
+  },
+  "now": "2026-03-18T15:30:00",
+  "dataset": "datasets/basic.json",
+  "script": [
+    {
+      "tool_call": {
+        "name": "compare_portfolios",
+        "args": {
+          "names": [
+            "Portfolio A-01",
+            "Portfolio A-03"
+          ],
+          "metric": "composite_risk_pct"
+        }
+      }
+    },
+    {
+      "final": {
+        "text": "**Portfolio A-01** is at low risk (**15.38%**). **Portfolio A-03** is at high risk (**42.86%**), driven by exceptions.",
+        "highlights": [],
+        "suggested_actions": [],
+        "data_sources": [
+          "compare_portfolios"
+        ],
+        "confidence": "high"
+      }
+    }
+  ],
+  "expect": {
+    "tools_any_of": [
+      "compare_portfolios"
+    ],
+    "params": [
+      {
+        "tool": "compare_portfolios",
+        "contains": {
+          "metric": "composite_risk_pct"
+        }
+      }
+    ],
+    "answer": {
+      "traceable_numbers": true,
+      "contains": [
+        "low",
+        "high"
+      ]
+    },
+    "ground_truth": [
+      {
+        "tool": "compare_portfolios",
+        "path": "portfolios.0.composite_risk_pct",
+        "equals": 15.38
+      },
+      {
+        "tool": "compare_portfolios",
+        "path": "portfolios.1.composite_risk_pct",
+        "equals": 42.86
+      }
+    ]
+  }
+}

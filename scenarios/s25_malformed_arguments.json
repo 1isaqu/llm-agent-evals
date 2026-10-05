@@ -1,0 +1,59 @@
+{
+  "id": "S25",
+  "title": "Arguments that are not JSON cost a step and are retried",
+  "category": "validation",
+  "question": "How risky is Portfolio A-02?",
+  "session": {
+    "product_line": "auto",
+    "date_from": "2026-03-01",
+    "date_to": "2026-03-18"
+  },
+  "now": "2026-03-18T15:30:00",
+  "dataset": "datasets/basic.json",
+  "script": [
+    {
+      "tool_call": {
+        "name": "get_portfolio_metrics",
+        "raw_args": "{portfolio_name: A-02"
+      }
+    },
+    {
+      "tool_call": {
+        "name": "get_portfolio_metrics",
+        "args": {
+          "portfolio_name": "Portfolio A-02"
+        }
+      }
+    },
+    {
+      "final": {
+        "text": "**Portfolio A-02** is at **medium** risk with a composite of **25.0%**.",
+        "highlights": [],
+        "suggested_actions": [],
+        "data_sources": [
+          "get_portfolio_metrics"
+        ],
+        "confidence": "high"
+      }
+    }
+  ],
+  "expect": {
+    "tools_any_of": [
+      "get_portfolio_metrics"
+    ],
+    "tool_errors": [
+      "validation"
+    ],
+    "params": [
+      {
+        "tool": "get_portfolio_metrics",
+        "contains": {
+          "portfolio_name": "Portfolio A-02"
+        }
+      }
+    ],
+    "answer": {
+      "traceable_numbers": true
+    }
+  }
+}

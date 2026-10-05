@@ -1,0 +1,65 @@
+{
+  "id": "S27",
+  "title": "A weekly trend from daily points",
+  "category": "temporal",
+  "question": "How has generated value evolved week over week?",
+  "session": {
+    "product_line": "auto",
+    "date_from": "2026-03-01",
+    "date_to": "2026-03-18"
+  },
+  "now": "2026-03-18T15:30:00",
+  "dataset": "datasets/basic.json",
+  "script": [
+    {
+      "tool_call": {
+        "name": "query_kpi_history",
+        "args": {
+          "product_line": "auto",
+          "kpi": "generated_value",
+          "date_from": "2026-03-09",
+          "date_to": "2026-03-18",
+          "granularity": "week"
+        }
+      }
+    },
+    {
+      "final": {
+        "text": "Generated value fell from **$4,500.00** in the week of 2026-03-09 to **$3,100.00** in the partial week of 2026-03-16, a change of **-31.11%**.",
+        "highlights": [],
+        "suggested_actions": [],
+        "data_sources": [
+          "query_kpi_history"
+        ],
+        "confidence": "high"
+      }
+    }
+  ],
+  "expect": {
+    "tools_any_of": [
+      "query_kpi_history"
+    ],
+    "params": [
+      {
+        "tool": "query_kpi_history",
+        "contains": {
+          "kpi": "generated_value",
+          "granularity": "week"
+        }
+      }
+    ],
+    "answer": {
+      "traceable_numbers": true,
+      "contains": [
+        "fell"
+      ]
+    },
+    "ground_truth": [
+      {
+        "tool": "query_kpi_history",
+        "path": "change_pct",
+        "equals": -31.11
+      }
+    ]
+  }
+}

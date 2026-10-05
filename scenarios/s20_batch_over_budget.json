@@ -1,0 +1,67 @@
+{
+  "id": "S20",
+  "title": "A batch of calls cannot exceed the step budget",
+  "category": "resilience",
+  "question": "Give me an overview: status, plan stages, agents and Portfolio A-01.",
+  "session": {
+    "product_line": "auto",
+    "date_from": "2026-03-01",
+    "date_to": "2026-03-18"
+  },
+  "now": "2026-03-18T15:30:00",
+  "dataset": "datasets/basic.json",
+  "limits": {
+    "max_steps": 2
+  },
+  "script": [
+    {
+      "tool_calls": [
+        {
+          "name": "get_status_breakdown",
+          "args": {}
+        },
+        {
+          "name": "get_plan_stage_distribution",
+          "args": {}
+        },
+        {
+          "name": "list_agents_performance",
+          "args": {}
+        },
+        {
+          "name": "get_portfolio_metrics",
+          "args": {
+            "portfolio_name": "Portfolio A-01"
+          }
+        }
+      ]
+    },
+    {
+      "final": {
+        "text": "I was limited to two data lookups for this question. Generated value is **$14,000.00** across **28** agreements, and the plan stages are shown below the limit. Ask for agents and Portfolio A-01 separately.",
+        "highlights": [],
+        "suggested_actions": [],
+        "data_sources": [
+          "get_status_breakdown",
+          "get_plan_stage_distribution"
+        ],
+        "confidence": "medium"
+      }
+    }
+  ],
+  "expect": {
+    "tool_errors": [
+      "step_budget_exceeded"
+    ],
+    "forced_final": true,
+    "answer": {
+      "traceable_numbers": true,
+      "contains": [
+        "limited"
+      ]
+    },
+    "confidence": [
+      "medium"
+    ]
+  }
+}

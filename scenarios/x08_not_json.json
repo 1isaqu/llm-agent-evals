@@ -1,0 +1,33 @@
+{
+  "id": "X08",
+  "title": "A plain-text answer instead of the JSON contract",
+  "category": "self_test",
+  "question": "How is Portfolio A-02?",
+  "session": {
+    "product_line": "auto",
+    "date_from": "2026-03-01",
+    "date_to": "2026-03-18"
+  },
+  "now": "2026-03-18T15:30:00",
+  "dataset": "datasets/basic.json",
+  "script": [
+    {
+      "tool_call": {
+        "name": "get_portfolio_metrics",
+        "args": {
+          "portfolio_name": "Portfolio A-02"
+        }
+      }
+    },
+    {
+      "text": "Portfolio A-02 is fine."
+    }
+  ],
+  "expect": {
+    "should_pass": false,
+    "expect_violations": [
+      "outcome:not_json"
+    ]
+  },
+  "notes": "Self-test: the harness must report the declared violation."
+}

@@ -1,0 +1,66 @@
+{
+  "id": "S32",
+  "title": "Ranking by the official conversion metric",
+  "category": "comparison",
+  "question": "Rank the agents by conversion.",
+  "session": {
+    "product_line": "auto",
+    "date_from": "2026-03-01",
+    "date_to": "2026-03-18"
+  },
+  "now": "2026-03-18T15:30:00",
+  "dataset": "datasets/basic.json",
+  "script": [
+    {
+      "tool_call": {
+        "name": "list_agents_performance",
+        "args": {
+          "order_by": "conversion_pct",
+          "limit": 4
+        }
+      }
+    },
+    {
+      "final": {
+        "text": "**Agent 03** leads with **32.0%**, then **Agent 01** (**25.0%**), **Agent 02** (**20.0%**) and **Agent 04** (**10.0%**).",
+        "highlights": [],
+        "suggested_actions": [],
+        "data_sources": [
+          "list_agents_performance"
+        ],
+        "confidence": "high"
+      }
+    }
+  ],
+  "expect": {
+    "tools_any_of": [
+      "list_agents_performance"
+    ],
+    "params": [
+      {
+        "tool": "list_agents_performance",
+        "contains": {
+          "order_by": "conversion_pct"
+        }
+      }
+    ],
+    "answer": {
+      "traceable_numbers": true,
+      "forbidden": [
+        "paid per cpc"
+      ]
+    },
+    "ground_truth": [
+      {
+        "tool": "list_agents_performance",
+        "path": "0.conversion_pct",
+        "equals": 32.0
+      },
+      {
+        "tool": "list_agents_performance",
+        "path": "3.conversion_pct",
+        "equals": 10.0
+      }
+    ]
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "id": "S22",
+  "title": "If the base rollup fails the request degrades, the model is never asked",
+  "category": "resilience",
+  "question": "How are the portfolios doing?",
+  "session": {
+    "product_line": "auto",
+    "date_from": "2026-03-01",
+    "date_to": "2026-03-18"
+  },
+  "now": "2026-03-18T15:30:00",
+  "dataset": "datasets/basic.json",
+  "dataset_patch": {
+    "auto": {
+      "status_rollup": {
+        "$fail": "timeout"
+      }
+    }
+  },
+  "script": [],
+  "expect": {
+    "zero_tool_calls": true,
+    "degraded": "dataset_unavailable",
+    "answer": {
+      "contains": [
+        "not available"
+      ]
+    },
+    "confidence": [
+      "low"
+    ]
+  }
+}

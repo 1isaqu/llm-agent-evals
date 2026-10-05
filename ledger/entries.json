@@ -1,0 +1,640 @@
+{
+  "title": "Agent reliability ledger",
+  "intro": "Failure classes of a tool-calling analytics agent, what closed each one, and the scenario or test that keeps it closed. An entry is only `closed` when it cites evidence that `llm-agent-evals ledger verify` can resolve.",
+  "methodology": [
+    "Every closed entry cites at least one scenario or test. Verification fails when a reference does not resolve.",
+    "Scripted scenarios exercise the real loop, guards and analytics with a model that follows a script. They measure the machinery, not a model.",
+    "Self-test scenarios (X-series) script a deliberate mistake and declare the violation the harness must report, which shows each assertion layer can fail.",
+    "Partial entries say what is not covered. Open entries are known and unfixed."
+  ],
+  "constraints": [
+    "Data access is read-only. Every statement passes a single-SELECT guard before it runs.",
+    "The data contract has no personal identifiers.",
+    "The API key is read only from the environment and never appears in a message, log or representation.",
+    "Telemetry carries no tool arguments, no data and no text of the conversation.",
+    "Continuous integration uses the scripted and rule-based mock models only."
+  ],
+  "entries": [
+    {
+      "id": "L-01",
+      "class": "Formula explained from memory",
+      "status": "closed",
+      "finding": "A model asked how a metric is calculated answers from general knowledge and states a formula that differs from the one the numbers use.",
+      "fix": "`explain_metric` serves definitions from a registry built from the active business configuration. The prompt requires a lookup before any explanation, and a committed snapshot of the registry is compared with the code in a test.",
+      "evidence": [
+        {
+          "kind": "scenario",
+          "ref": "S15"
+        },
+        {
+          "kind": "test",
+          "ref": "tests/test_metric_registry.py::test_the_committed_snapshot_matches_the_code"
+        },
+        {
+          "kind": "test",
+          "ref": "tests/test_tools.py::test_explain_metric_serves_the_registry_and_its_aliases"
+        },
+        {
+          "kind": "module",
+          "ref": "src/llm_agent_evals/metrics.py"
+        }
+      ],
+      "residual_risk": "Nothing in code forces the lookup before an explanation. The rule lives in the prompt, so a live model can still skip it."
+    },
+    {
+      "id": "L-02",
+      "class": "One word for three ratios",
+      "status": "closed",
+      "finding": "Conversion (agreements over right-party contacts), paid-per-CPC and slip effectiveness are different ratios that are easy to call by the same name.",
+      "fix": "Separate field names and separate tools. Effectiveness points do not carry conversion field names. Conversion exists only per agent and the tool descriptions say so.",
+      "evidence": [
+        {
+          "kind": "scenario",
+          "ref": "S03"
+        },
+        {
+          "kind": "scenario",
+          "ref": "S28"
+        },
+        {
+          "kind": "scenario",
+          "ref": "X05"
+        },
+        {
+          "kind": "test",
+          "ref": "tests/test_analytics_agents.py::test_conversion_and_paid_per_cpc_are_two_different_metrics"
+        },
+        {
+          "kind": "test",
+          "ref": "tests/test_analytics_views.py::test_effectiveness_points_never_use_the_conversion_field_names"
+        },
+        {
+          "kind": "test",
+          "ref": "tests/test_metric_registry.py::test_conversion_effectiveness_and_paid_per_cpc_are_three_different_entries"
+        }
+      ],
+      "residual_risk": "Whether free text uses the right label is checked only through forbidden strings that a scenario author thought of."
+    },
+    {
+      "id": "L-03",
+      "class": "Overlapping risk axes added together",
+      "status": "closed",
+      "finding": "Exception, broken and rejected shares overlap (broken is part of generated). Adding them double counts and overstates risk.",
+      "fix": "Composite risk is the maximum axis, every axis is a share of one common universe, and the registry and the prompt both state it.",
+      "evidence": [
+        {
+          "kind": "scenario",
+          "ref": "S02"
+        },
+        {
+          "kind": "test",
+          "ref": "tests/test_analytics_portfolio.py::test_composite_risk_is_the_maximum_axis_never_the_sum"
+        },
+        {
+          "kind": "test",
+          "ref": "tests/test_analytics_portfolio.py::test_every_axis_is_a_share_of_the_same_universe"
+        }
+      ],
+      "residual_risk": "A model can still add axes in prose. The scenario catches the one sum it knows about."
+    },
+    {
+      "id": "L-04",
+      "class": "Corrupt rows read as extreme risk",
+      "status": "closed",
+      "finding": "Negative amounts push an axis outside 0 to 100 percent. Reported as risk, it looks like a catastrophe instead of bad data.",
+      "fix": "Entries carry an `anomaly` flag when an axis leaves the range. The prompt requires an explicit alert and forbids correcting the number.",
+      "evidence": [
+        {
+          "kind": "scenario",
+          "ref": "S04"
+        },
+        {
+          "kind": "test",
+          "ref": "tests/test_analytics_portfolio.py::test_a_negative_amount_is_flagged_as_an_anomaly_and_not_corrected"
+        },
+        {
+          "kind": "test",
+          "ref": "tests/test_analytics_portfolio.py::test_clean_data_can_never_leave_the_zero_to_hundred_range"
+        }
+      ],
+      "residual_risk": "Only corruption that leaves the range is detected. Wrong but plausible values pass."
+    },
+    {
+      "id": "L-05",
+      "class": "Runaway tool loop",
+      "status": "closed",
+      "finding": "A model repeats the same call, or alternates between two calls, until the budget is gone.",
+      "fix": "Identical calls are memoised and the third declares a loop. An A, B, A, B pattern over the last four calls is detected. Either ends tool use and forces a final answer.",
+      "evidence": [
+        {
+          "kind": "scenario",
+          "ref": "S19"
+        },
+        {
+          "kind": "test",
+          "ref": "tests/test_guards.py::test_identical_calls_are_memoised_and_the_third_declares_a_loop"
+        },
+        {
+          "kind": "test",
+          "ref": "tests/test_guards.py::test_an_a_b_a_b_spiral_declares_a_loop"
+        },
+        {
+          "kind": "test",
+          "ref": "tests/test_agent.py::test_three_identical_calls_declare_a_loop_and_end_the_run"
+        },
+        {
+          "kind": "module",
+          "ref": "src/llm_agent_evals/guards.py"
+        }
+      ],
+      "residual_risk": "A loop through slightly different arguments is bounded only by the step budget."
+    },
+    {
+      "id": "L-06",
+      "class": "A batch of calls slips past the budget",
+      "status": "closed",
+      "finding": "A model can return many tool calls in one turn. A check that runs between turns dispatches the whole batch even when the limit is already reached.",
+      "fix": "The step and wall-clock ceilings are checked inside `dispatch`, before every call.",
+      "evidence": [
+        {
+          "kind": "scenario",
+          "ref": "S20"
+        },
+        {
+          "kind": "test",
+          "ref": "tests/test_guards.py::test_step_budget_is_enforced_inside_dispatch_for_a_batch_of_calls"
+        },
+        {
+          "kind": "test",
+          "ref": "tests/test_guards.py::test_wall_clock_budget_is_enforced_inside_dispatch"
+        }
+      ],
+      "residual_risk": "One slow call can still overrun the wall clock by its own duration. There is no per-call timeout beyond what the database driver provides."
+    },
+    {
+      "id": "L-07",
+      "class": "Oversized tool results",
+      "status": "closed",
+      "finding": "A large result either fills the context or, cut in the middle, becomes JSON that the model cannot parse.",
+      "fix": "Results are capped as a whole into a warning envelope with a preview. Tool results count against a request budget, and old tool groups are compacted into a short note when it nears the limit.",
+      "evidence": [
+        {
+          "kind": "test",
+          "ref": "tests/test_guards.py::test_an_oversized_result_becomes_a_warning_envelope_not_cut_json"
+        },
+        {
+          "kind": "test",
+          "ref": "tests/test_guards.py::test_dispatch_applies_the_cap_and_reports_it"
+        },
+        {
+          "kind": "test",
+          "ref": "tests/test_compaction.py::test_old_groups_are_replaced_by_one_note_and_the_newest_group_is_kept_intact"
+        },
+        {
+          "kind": "test",
+          "ref": "tests/test_agent.py::test_the_conversation_is_compacted_when_the_tool_budget_nears_its_limit"
+        }
+      ],
+      "residual_risk": "Token counts are a characters-per-token estimate, not a tokenizer."
+    },
+    {
+      "id": "L-08",
+      "class": "Provider rejects consecutive same-role messages",
+      "status": "partial",
+      "finding": "A tool result followed by a nudge to answer produces two user-side messages in a row, which one provider format refuses.",
+      "fix": "The loop works on a neutral message type. The wire adapter merges consecutive user-side items into one message and puts tool results first, so the error class cannot be built.",
+      "evidence": [
+        {
+          "kind": "test",
+          "ref": "tests/test_llm_wire.py::test_anthropic_merges_consecutive_user_items_so_roles_always_alternate"
+        },
+        {
+          "kind": "test",
+          "ref": "tests/test_llm_wire.py::test_anthropic_never_emits_two_consecutive_messages_with_the_same_role"
+        },
+        {
+          "kind": "test",
+          "ref": "tests/test_llm_wire.py::test_anthropic_puts_tool_results_before_text_in_a_merged_user_message"
+        }
+      ],
+      "gap": "The adapters are tested through an injected transport and have never been run against a live provider."
+    },
+    {
+      "id": "L-09",
+      "class": "Silent first match",
+      "status": "closed",
+      "finding": "A name fragment that matches several portfolios returns the first one, presented as if it were the only candidate.",
+      "fix": "Results carry an `ambiguity_warning` naming the other matches, and the prompt requires the model to pass it on and ask which one was meant. Agent comparison matches ids exactly, never by fragment.",
+      "evidence": [
+        {
+          "kind": "scenario",
+          "ref": "S08"
+        },
+        {
+          "kind": "test",
+          "ref": "tests/test_tools.py::test_the_ambiguity_warning_names_the_other_matches_only_for_fragments"
+        },
+        {
+          "kind": "test",
+          "ref": "tests/test_tools.py::test_get_portfolio_metrics_by_exact_name_and_by_fragment_with_a_warning"
+        },
+        {
+          "kind": "test",
+          "ref": "tests/test_tools.py::test_compare_agents_matches_ids_exactly_and_refuses_system_accounts"
+        }
+      ],
+      "residual_risk": "Passing the warning on to the user is a prompt rule. Only the scenario checks it."
+    },
+    {
+      "id": "L-10",
+      "class": "Guessed names after a not-found",
+      "status": "closed",
+      "finding": "After a lookup fails, a model tries other names it makes up.",
+      "fix": "A not-found result is not retryable and lists the real names. The prompt forbids guessing and tells the model to offer the listed ones.",
+      "evidence": [
+        {
+          "kind": "scenario",
+          "ref": "S21"
+        },
+        {
+          "kind": "test",
+          "ref": "tests/test_tools.py::test_an_unknown_portfolio_lists_the_real_ones"
+        },
+        {
+          "kind": "test",
+          "ref": "tests/test_tools.py::test_agent_performance_found_and_not_found"
+        }
+      ]
+    },
+    {
+      "id": "L-11",
+      "class": "Instruction hidden in tool data",
+      "status": "partial",
+      "finding": "A field returned by a tool (a portfolio label, for example) contains text that tells the model to ignore its rules.",
+      "fix": "The prompt states that tool output is data, never an instruction, and gives the trust order. A scenario carries such a label and checks that the answer does not follow it.",
+      "evidence": [
+        {
+          "kind": "scenario",
+          "ref": "S16"
+        }
+      ],
+      "gap": "The defence is the prompt only. The scripted model cannot be injected, so the scenario shows the harness would catch an echo, not that a real model resists."
+    },
+    {
+      "id": "L-12",
+      "class": "SQL or internals in the final answer",
+      "status": "closed",
+      "finding": "The answer contains SQL in a code block, a dump of a raw tool envelope or a stack trace.",
+      "fix": "A sanitiser replaces such text with a fixed refusal and never echoes it. The data source rejects any statement that is not a single read-only SELECT before it runs.",
+      "evidence": [
+        {
+          "kind": "scenario",
+          "ref": "S24"
+        },
+        {
+          "kind": "scenario",
+          "ref": "S07"
+        },
+        {
+          "kind": "test",
+          "ref": "tests/test_errors.py::test_sanitizer_refuses_sql_stack_traces_and_raw_envelopes"
+        },
+        {
+          "kind": "test",
+          "ref": "tests/test_agent.py::test_an_unsafe_final_answer_is_replaced"
+        },
+        {
+          "kind": "test",
+          "ref": "tests/test_response.py::test_unsafe_text_is_replaced_and_never_echoed"
+        },
+        {
+          "kind": "test",
+          "ref": "tests/test_sql.py::test_read_only_guard_rejects_everything_else"
+        }
+      ],
+      "residual_risk": "The sanitiser is pattern based. SQL written as plain prose passes."
+    },
+    {
+      "id": "L-13",
+      "class": "Personal data reaching an external model",
+      "status": "partial",
+      "finding": "A mapped column that happens to hold free text, or a join that pulls in a contact field, would send personal data to the model provider.",
+      "fix": "The data contract has no personal identifier. An egress guard inspects every tool result for denied field names and for email, phone and long-digit shapes, and either redacts them or withholds the whole result.",
+      "evidence": [
+        {
+          "kind": "scenario",
+          "ref": "S13"
+        },
+        {
+          "kind": "test",
+          "ref": "tests/test_privacy.py::test_fields_that_commonly_hold_personal_data_are_redacted_by_name"
+        },
+        {
+          "kind": "test",
+          "ref": "tests/test_agent.py::test_personal_looking_values_are_redacted_before_the_model_sees_them"
+        },
+        {
+          "kind": "test",
+          "ref": "tests/test_agent.py::test_the_block_policy_withholds_the_whole_result"
+        }
+      ],
+      "gap": "A person's name in free text cannot be recognised. Long digit runs such as internal ids can be redacted by mistake. The user's own message is not inspected."
+    },
+    {
+      "id": "L-14",
+      "class": "Cached result served to another window",
+      "status": "closed",
+      "finding": "A cache keyed only by tool and arguments serves one session the result of another session that looks at a different period.",
+      "fix": "The session line and window are part of the cache key.",
+      "evidence": [
+        {
+          "kind": "test",
+          "ref": "tests/test_guards.py::test_the_cache_key_includes_the_session_window"
+        },
+        {
+          "kind": "test",
+          "ref": "tests/test_guards.py::test_different_windows_do_not_share_cached_results"
+        },
+        {
+          "kind": "test",
+          "ref": "tests/test_agent.py::test_a_shared_cache_serves_the_same_call_in_a_later_request"
+        }
+      ],
+      "residual_risk": "The cache is per process and has no invalidation inside its time to live."
+    },
+    {
+      "id": "L-15",
+      "class": "Relative dates worked out by the model",
+      "status": "closed",
+      "finding": "A model resolves last quarter or yesterday from its own idea of today and uses the wrong period.",
+      "fix": "The agent computes explicit dates for today, yesterday, this week, this month, last month, this quarter and last quarter from an injected clock and lists them in the session context. Windows are validated before any query runs.",
+      "evidence": [
+        {
+          "kind": "scenario",
+          "ref": "S09"
+        },
+        {
+          "kind": "scenario",
+          "ref": "S14"
+        },
+        {
+          "kind": "scenario",
+          "ref": "S27"
+        },
+        {
+          "kind": "test",
+          "ref": "tests/test_prompt.py::test_date_anchors_are_computed_from_the_given_day"
+        },
+        {
+          "kind": "test",
+          "ref": "tests/test_prompt.py::test_open_periods_end_today_not_at_the_end_of_the_period"
+        },
+        {
+          "kind": "test",
+          "ref": "tests/test_tools.py::test_window_rules_are_enforced_before_any_query_runs"
+        }
+      ],
+      "residual_risk": "The model still has to copy the dates into its arguments. Only scenarios that declare expected parameters check it."
+    },
+    {
+      "id": "L-16",
+      "class": "Base data failure crashes the request",
+      "status": "closed",
+      "finding": "The portfolio rollup is loaded before the loop, outside the guard. A timeout there turns into a raw server error.",
+      "fix": "Any failure while loading it degrades to a fixed low-confidence answer, and the model is never called.",
+      "evidence": [
+        {
+          "kind": "scenario",
+          "ref": "S22"
+        },
+        {
+          "kind": "test",
+          "ref": "tests/test_agent.py::test_a_failing_base_dataset_degrades_the_answer_and_never_asks_the_model"
+        },
+        {
+          "kind": "test",
+          "ref": "tests/test_agent.py::test_a_missing_section_in_the_base_dataset_also_degrades"
+        }
+      ]
+    },
+    {
+      "id": "L-17",
+      "class": "Malformed answer from the model",
+      "status": "closed",
+      "finding": "The model wraps its JSON in code fences, writes a raw line break inside a string, adds prose around it, or does not produce an object.",
+      "fix": "A tolerant parser extracts the object and coerces every field to the contract. Anything unusable becomes a low-confidence answer. The harness still reports a format violation.",
+      "evidence": [
+        {
+          "kind": "scenario",
+          "ref": "S23"
+        },
+        {
+          "kind": "scenario",
+          "ref": "X08"
+        },
+        {
+          "kind": "test",
+          "ref": "tests/test_response.py::test_code_fences_prose_and_raw_line_breaks_are_tolerated"
+        },
+        {
+          "kind": "test",
+          "ref": "tests/test_response.py::test_text_that_is_not_an_object_degrades_to_low_confidence_without_raising"
+        }
+      ]
+    },
+    {
+      "id": "L-18",
+      "class": "Hallucinated or malformed tool arguments",
+      "status": "closed",
+      "finding": "A model invents an argument, sends a number as text, or sends arguments that are not valid JSON.",
+      "fix": "Every schema is closed. A small validator coerces harmless mistakes and reports all remaining problems at once with a hint. Unreadable arguments cost a step and come back as a validation error.",
+      "evidence": [
+        {
+          "kind": "scenario",
+          "ref": "S14"
+        },
+        {
+          "kind": "scenario",
+          "ref": "S25"
+        },
+        {
+          "kind": "test",
+          "ref": "tests/test_registry.py::test_open_schemas_are_a_startup_error"
+        },
+        {
+          "kind": "test",
+          "ref": "tests/test_registry.py::test_invalid_arguments_come_back_as_a_validation_error_not_an_exception"
+        },
+        {
+          "kind": "test",
+          "ref": "tests/test_agent.py::test_malformed_tool_arguments_cost_a_step_and_get_a_validation_error"
+        },
+        {
+          "kind": "test",
+          "ref": "tests/test_jsonschema_lite.py::test_all_problems_are_reported_at_once"
+        }
+      ]
+    },
+    {
+      "id": "L-19",
+      "class": "Driver details reach the model",
+      "status": "closed",
+      "finding": "A database driver message can contain host names or other internals. Passed to the model, it ends up in the answer.",
+      "fix": "Driver failures are wrapped, the original stays in the exception chain for the operator, and the model receives only an error type and a generic hint.",
+      "evidence": [
+        {
+          "kind": "scenario",
+          "ref": "S12"
+        },
+        {
+          "kind": "test",
+          "ref": "tests/test_guards.py::test_a_second_failure_is_reported_without_internal_detail"
+        },
+        {
+          "kind": "test",
+          "ref": "tests/test_sources.py::test_driver_failures_become_data_source_errors_that_keep_the_cause"
+        }
+      ],
+      "residual_risk": "The error type name of an unexpected exception is included for debugging."
+    },
+    {
+      "id": "L-20",
+      "class": "Confidence that does not match the answer",
+      "status": "partial",
+      "finding": "An answer that is mostly not found, or based on a failed call, is marked high confidence.",
+      "fix": "The prompt ties confidence to the core of the question. Scenarios can declare the confidence they expect, and a self-test shows the harness reports a mismatch.",
+      "evidence": [
+        {
+          "kind": "scenario",
+          "ref": "S12"
+        },
+        {
+          "kind": "scenario",
+          "ref": "S21"
+        },
+        {
+          "kind": "scenario",
+          "ref": "X09"
+        }
+      ],
+      "gap": "No general rule links confidence to tool errors. Only scenarios that declare an expectation are checked."
+    },
+    {
+      "id": "L-21",
+      "class": "Provider call failures",
+      "status": "partial",
+      "finding": "A model provider throttles, times out or returns an error.",
+      "fix": "Throttling and server errors are retried with capped backoff. Other errors fail fast. Error messages carry the status and a short provider message, never the key, the headers or the request body. The service maps provider failures to a generic 502.",
+      "evidence": [
+        {
+          "kind": "test",
+          "ref": "tests/test_llm_wire.py::test_a_throttled_call_is_retried_with_backoff_then_succeeds"
+        },
+        {
+          "kind": "test",
+          "ref": "tests/test_llm_wire.py::test_error_messages_never_contain_the_key_the_headers_or_the_request_body"
+        },
+        {
+          "kind": "test",
+          "ref": "tests/test_service.py::test_a_model_failure_is_502_with_a_generic_message_and_no_provider_text"
+        }
+      ],
+      "gap": "Retry behaviour is tested against a fake transport. No live provider was called."
+    },
+    {
+      "id": "L-22",
+      "class": "A real number on the wrong label",
+      "status": "partial",
+      "finding": "The numeric faithfulness check catches an invented number. It cannot catch a real number attached to the wrong name.",
+      "fix": "Scenarios add forbidden wording and ground-truth values computed by hand. Self-tests show each layer fires.",
+      "evidence": [
+        {
+          "kind": "scenario",
+          "ref": "X01"
+        },
+        {
+          "kind": "scenario",
+          "ref": "X05"
+        },
+        {
+          "kind": "scenario",
+          "ref": "X07"
+        },
+        {
+          "kind": "test",
+          "ref": "tests/test_evals_checks.py::test_an_invented_number_is_flagged_with_its_token"
+        },
+        {
+          "kind": "test",
+          "ref": "tests/test_evals_checks.py::test_a_sum_of_two_seen_numbers_is_accepted_only_for_values_of_at_least_one_hundred"
+        }
+      ],
+      "gap": "Totals a model adds up from three or more numbers are reported as untraceable."
+    },
+    {
+      "id": "L-23",
+      "class": "Claiming data is missing after receiving it",
+      "status": "partial",
+      "finding": "The model says the data is not available although a tool call returned rows.",
+      "fix": "A harness layer compares the answer with the guard's own telemetry (error type and row count) and flags the contradiction.",
+      "evidence": [
+        {
+          "kind": "scenario",
+          "ref": "X06"
+        },
+        {
+          "kind": "test",
+          "ref": "tests/test_evals_checks.py::test_claiming_unavailability_after_a_call_returned_rows_is_flagged"
+        }
+      ],
+      "gap": "It matches phrases, not entities. A sentence that mixes a true and a false unavailability claim passes."
+    },
+    {
+      "id": "L-24",
+      "class": "Answer quality that no rule can check",
+      "status": "open",
+      "finding": "Tone, completeness and whether the answer addresses the question are not covered by any assertion layer.",
+      "fix": "Not started. A judge layer would need a live model and a rubric, which this repository does not include.",
+      "evidence": []
+    },
+    {
+      "id": "L-25",
+      "class": "The model itself is not measured in CI",
+      "status": "open",
+      "finding": "Scripted scenarios prove the machinery and the guards. They say nothing about how a real model chooses tools or words.",
+      "fix": "`llm-agent-evals eval --live` runs the same scenarios against the configured model and reports the same metrics. No scheduled live run exists, so no baseline exists either.",
+      "evidence": [
+        {
+          "kind": "module",
+          "ref": "src/llm_agent_evals/evals/runner.py"
+        }
+      ]
+    }
+  ],
+  "landmines": [
+    {
+      "id": "M-01",
+      "note": "The result cache and the circuit breaker live in one process. With several workers each keeps its own, so cached results and breaker state are not shared."
+    },
+    {
+      "id": "M-02",
+      "note": "The SQL Server dialect is checked as generated text only. It has never been run against a live server."
+    },
+    {
+      "id": "M-03",
+      "note": "The OpenAI-compatible and Anthropic adapters have never been called against a live provider. Their wire formats were written from the public descriptions."
+    },
+    {
+      "id": "M-04",
+      "note": "The egress guard inspects tool results. The user's own message goes to the model as typed."
+    },
+    {
+      "id": "M-05",
+      "note": "The window limit applies per call. A model can chain calls over consecutive windows, which costs steps but not correctness."
+    },
+    {
+      "id": "M-06",
+      "note": "The default risk cut-offs, grace period and window limit are invented. Every number the agent reports about risk level depends on calibrating them."
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "id": "S10",
+  "title": "A vague question uses the documented defaults and says so",
+  "category": "vague",
+  "question": "Show me the numbers.",
+  "session": {
+    "product_line": "auto",
+    "date_from": "2026-03-01",
+    "date_to": "2026-03-18"
+  },
+  "now": "2026-03-18T15:30:00",
+  "dataset": "datasets/basic.json",
+  "script": [
+    {
+      "tool_call": {
+        "name": "get_status_breakdown",
+        "args": {}
+      }
+    },
+    {
+      "final": {
+        "text": "You did not name a period or a portfolio, so I used the session window (2026-03-01 to 2026-03-18). Generated value is **$14,000.00** across **28** agreements. Tell me which portfolio or agent to look at next.",
+        "highlights": [],
+        "suggested_actions": [],
+        "data_sources": [
+          "get_status_breakdown"
+        ],
+        "confidence": "medium"
+      }
+    }
+  ],
+  "expect": {
+    "tools_any_of": [
+      "get_status_breakdown"
+    ],
+    "answer": {
+      "traceable_numbers": true,
+      "contains": [
+        "session window"
+      ]
+    },
+    "confidence": [
+      "medium"
+    ]
+  }
+}

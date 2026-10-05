@@ -1,0 +1,55 @@
+{
+  "id": "S18",
+  "title": "A session over both product lines sums rows, not ratios",
+  "category": "multi_line",
+  "question": "What is the generated value across both product lines?",
+  "session": {
+    "product_line": "all",
+    "date_from": "2026-03-01",
+    "date_to": "2026-03-18"
+  },
+  "now": "2026-03-18T15:30:00",
+  "dataset": "datasets/basic.json",
+  "script": [
+    {
+      "tool_call": {
+        "name": "get_status_breakdown",
+        "args": {}
+      }
+    },
+    {
+      "final": {
+        "text": "Across the auto and consumer lines the generated value is **$19,900.00** over **39** agreements.",
+        "highlights": [],
+        "suggested_actions": [],
+        "data_sources": [
+          "get_status_breakdown"
+        ],
+        "confidence": "high"
+      }
+    }
+  ],
+  "expect": {
+    "tools_any_of": [
+      "get_status_breakdown"
+    ],
+    "answer": {
+      "traceable_numbers": true,
+      "contains": [
+        "19,900.00"
+      ]
+    },
+    "ground_truth": [
+      {
+        "tool": "get_status_breakdown",
+        "path": "generated_amount",
+        "equals": 19900.0
+      },
+      {
+        "tool": "get_status_breakdown",
+        "path": "generated_qty",
+        "equals": 39
+      }
+    ]
+  }
+}

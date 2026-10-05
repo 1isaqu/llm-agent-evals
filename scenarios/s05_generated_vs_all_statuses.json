@@ -1,0 +1,63 @@
+{
+  "id": "S05",
+  "title": "Generated value excludes exception and rejected",
+  "category": "trap",
+  "question": "What is the generated value in this period?",
+  "session": {
+    "product_line": "auto",
+    "date_from": "2026-03-01",
+    "date_to": "2026-03-18"
+  },
+  "now": "2026-03-18T15:30:00",
+  "dataset": "datasets/basic.json",
+  "script": [
+    {
+      "tool_call": {
+        "name": "get_status_breakdown",
+        "args": {}
+      }
+    },
+    {
+      "final": {
+        "text": "Generated value in the window is **$14,000.00** across **28** agreements. Exception and rejected value are not part of it.",
+        "highlights": [],
+        "suggested_actions": [],
+        "data_sources": [
+          "get_status_breakdown"
+        ],
+        "confidence": "high"
+      }
+    }
+  ],
+  "expect": {
+    "tools_any_of": [
+      "get_status_breakdown"
+    ],
+    "answer": {
+      "traceable_numbers": true,
+      "forbidden": [
+        "19,500"
+      ],
+      "contains": [
+        "14,000.00"
+      ]
+    },
+    "ground_truth": [
+      {
+        "tool": "get_status_breakdown",
+        "path": "generated_amount",
+        "equals": 14000.0
+      },
+      {
+        "tool": "get_status_breakdown",
+        "path": "generated_qty",
+        "equals": 28
+      },
+      {
+        "tool": "get_status_breakdown",
+        "path": "all_statuses_amount",
+        "equals": 19500.0
+      }
+    ]
+  }
+}

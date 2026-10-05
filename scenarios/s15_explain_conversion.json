@@ -1,0 +1,57 @@
+{
+  "id": "S15",
+  "title": "A formula is explained from the registry",
+  "category": "explanation",
+  "question": "How is conversion calculated?",
+  "session": {
+    "product_line": "auto",
+    "date_from": "2026-03-01",
+    "date_to": "2026-03-18"
+  },
+  "now": "2026-03-18T15:30:00",
+  "dataset": "datasets/basic.json",
+  "script": [
+    {
+      "tool_call": {
+        "name": "explain_metric",
+        "args": {
+          "term": "conversion"
+        }
+      }
+    },
+    {
+      "final": {
+        "text": "Conversion is agreement_count / cpc_count * 100: generated agreements over right-party contacts. The denominator is CPC, not slips issued, and it exists only per agent.",
+        "highlights": [],
+        "suggested_actions": [],
+        "data_sources": [
+          "explain_metric"
+        ],
+        "confidence": "high"
+      }
+    }
+  ],
+  "expect": {
+    "tools_any_of": [
+      "explain_metric"
+    ],
+    "params": [
+      {
+        "tool": "explain_metric",
+        "contains": {
+          "term": "conversion"
+        }
+      }
+    ],
+    "answer": {
+      "traceable_numbers": true,
+      "contains": [
+        "agreement_count / cpc_count",
+        "right-party"
+      ],
+      "forbidden": [
+        "slips issued is the denominator"
+      ]
+    }
+  }
+}

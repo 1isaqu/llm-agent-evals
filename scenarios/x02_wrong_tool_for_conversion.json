@@ -1,0 +1,46 @@
+{
+  "id": "X02",
+  "title": "Wrong tool chosen for a conversion question",
+  "category": "self_test",
+  "question": "What is Agent 03's conversion?",
+  "session": {
+    "product_line": "auto",
+    "date_from": "2026-03-01",
+    "date_to": "2026-03-18"
+  },
+  "now": "2026-03-18T15:30:00",
+  "dataset": "datasets/basic.json",
+  "script": [
+    {
+      "tool_call": {
+        "name": "get_status_breakdown",
+        "args": {}
+      }
+    },
+    {
+      "final": {
+        "text": "**Agent 03** converted **32.0%** of contacts.",
+        "highlights": [],
+        "suggested_actions": [],
+        "data_sources": [],
+        "confidence": "high"
+      }
+    }
+  ],
+  "expect": {
+    "should_pass": false,
+    "expect_violations": [
+      "tool_selection:missing_expected_tool",
+      "faithfulness:untraceable_number"
+    ],
+    "tools_any_of": [
+      "get_agent_performance",
+      "list_agents_performance",
+      "compare_agents"
+    ],
+    "answer": {
+      "traceable_numbers": true
+    }
+  },
+  "notes": "Self-test: the harness must report the declared violation."
+}

@@ -1,0 +1,57 @@
+{
+  "id": "S12",
+  "title": "A failing data source ends in an honest, low-confidence answer",
+  "category": "resilience",
+  "question": "How is Agent 01 doing?",
+  "session": {
+    "product_line": "auto",
+    "date_from": "2026-03-01",
+    "date_to": "2026-03-18"
+  },
+  "now": "2026-03-18T15:30:00",
+  "dataset": "datasets/basic.json",
+  "dataset_patch": {
+    "auto": {
+      "agent_rollup": {
+        "$fail": "connection reset"
+      }
+    }
+  },
+  "script": [
+    {
+      "tool_call": {
+        "name": "get_agent_performance",
+        "args": {
+          "agent_name": "agent_01"
+        }
+      }
+    },
+    {
+      "final": {
+        "text": "Data is not available for this query right now: the agent data service is unstable. Portfolio questions still work; try the agent question again shortly.",
+        "highlights": [],
+        "suggested_actions": [],
+        "data_sources": [
+          "get_agent_performance"
+        ],
+        "confidence": "low"
+      }
+    }
+  ],
+  "expect": {
+    "tools_any_of": [
+      "get_agent_performance"
+    ],
+    "tool_errors": [
+      "upstream_5xx"
+    ],
+    "answer": {
+      "contains": [
+        "not available"
+      ]
+    },
+    "confidence": [
+      "low"
+    ]
+  }
+}

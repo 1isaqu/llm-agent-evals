@@ -1,0 +1,48 @@
+{
+  "id": "X12",
+  "title": "More tool calls than the scenario allows",
+  "category": "self_test",
+  "question": "How is Portfolio A-01?",
+  "session": {
+    "product_line": "auto",
+    "date_from": "2026-03-01",
+    "date_to": "2026-03-18"
+  },
+  "now": "2026-03-18T15:30:00",
+  "dataset": "datasets/basic.json",
+  "script": [
+    {
+      "tool_call": {
+        "name": "get_portfolio_metrics",
+        "args": {
+          "portfolio_name": "Portfolio A-01"
+        }
+      }
+    },
+    {
+      "tool_call": {
+        "name": "get_status_breakdown",
+        "args": {}
+      }
+    },
+    {
+      "final": {
+        "text": "**Portfolio A-01** is at low risk.",
+        "highlights": [],
+        "suggested_actions": [],
+        "data_sources": [
+          "get_portfolio_metrics"
+        ],
+        "confidence": "high"
+      }
+    }
+  ],
+  "expect": {
+    "should_pass": false,
+    "expect_violations": [
+      "tool_selection:too_many_tool_calls"
+    ],
+    "max_tool_calls": 1
+  },
+  "notes": "Self-test: the harness must report the declared violation."
+}

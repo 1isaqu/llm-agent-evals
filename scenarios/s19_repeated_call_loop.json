@@ -1,0 +1,54 @@
+{
+  "id": "S19",
+  "title": "A repeated call is memoised and ends the loop",
+  "category": "resilience",
+  "question": "What is the status breakdown?",
+  "session": {
+    "product_line": "auto",
+    "date_from": "2026-03-01",
+    "date_to": "2026-03-18"
+  },
+  "now": "2026-03-18T15:30:00",
+  "dataset": "datasets/basic.json",
+  "script": [
+    {
+      "tool_call": {
+        "name": "get_status_breakdown",
+        "args": {}
+      }
+    },
+    {
+      "tool_call": {
+        "name": "get_status_breakdown",
+        "args": {}
+      }
+    },
+    {
+      "tool_call": {
+        "name": "get_status_breakdown",
+        "args": {}
+      }
+    },
+    {
+      "final": {
+        "text": "Generated value is **$14,000.00** across **28** agreements. I stopped calling tools because the same call was repeated.",
+        "highlights": [],
+        "suggested_actions": [],
+        "data_sources": [
+          "get_status_breakdown"
+        ],
+        "confidence": "medium"
+      }
+    }
+  ],
+  "expect": {
+    "tools_any_of": [
+      "get_status_breakdown"
+    ],
+    "max_tool_calls": 3,
+    "forced_final": true,
+    "answer": {
+      "traceable_numbers": true
+    }
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "id": "S28",
+  "title": "Conversion is not offered at a grain that has none",
+  "category": "trap",
+  "question": "What was the conversion rate each day this week?",
+  "session": {
+    "product_line": "auto",
+    "date_from": "2026-03-01",
+    "date_to": "2026-03-18"
+  },
+  "now": "2026-03-18T15:30:00",
+  "dataset": "datasets/basic.json",
+  "script": [
+    {
+      "tool_call": {
+        "name": "explain_metric",
+        "args": {
+          "term": "conversion"
+        }
+      }
+    },
+    {
+      "final": {
+        "text": "Conversion (agreements over right-party contacts) exists only per agent, so there is no daily series. Slip effectiveness is a different metric that I can show by day instead.",
+        "highlights": [],
+        "suggested_actions": [
+          {
+            "label": "Slip effectiveness by day",
+            "prompt": "Show slip effectiveness by day this week"
+          }
+        ],
+        "data_sources": [
+          "explain_metric"
+        ],
+        "confidence": "medium"
+      }
+    }
+  ],
+  "expect": {
+    "tools_any_of": [
+      "explain_metric"
+    ],
+    "answer": {
+      "contains": [
+        "only per agent"
+      ],
+      "forbidden": [
+        "daily conversion was",
+        "conversion by day is"
+      ]
+    },
+    "confidence": [
+      "medium"
+    ]
+  }
+}

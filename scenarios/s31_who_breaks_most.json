@@ -1,0 +1,63 @@
+{
+  "id": "S31",
+  "title": "Ranking agents by one status dimension",
+  "category": "comparison",
+  "question": "Who breaks the most agreements?",
+  "session": {
+    "product_line": "auto",
+    "date_from": "2026-03-01",
+    "date_to": "2026-03-18"
+  },
+  "now": "2026-03-18T15:30:00",
+  "dataset": "datasets/basic.json",
+  "script": [
+    {
+      "tool_call": {
+        "name": "get_agent_ranking_by_dimension",
+        "args": {
+          "dimension": "broken",
+          "limit": 3
+        }
+      }
+    },
+    {
+      "final": {
+        "text": "**Agent 02** leads with **$1,500.00** in broken first installments. **Agent 01** and **Agent 03** follow with **$1,000.00** each.",
+        "highlights": [],
+        "suggested_actions": [],
+        "data_sources": [
+          "get_agent_ranking_by_dimension"
+        ],
+        "confidence": "high"
+      }
+    }
+  ],
+  "expect": {
+    "tools_any_of": [
+      "get_agent_ranking_by_dimension"
+    ],
+    "params": [
+      {
+        "tool": "get_agent_ranking_by_dimension",
+        "contains": {
+          "dimension": "broken"
+        }
+      }
+    ],
+    "answer": {
+      "traceable_numbers": true
+    },
+    "ground_truth": [
+      {
+        "tool": "get_agent_ranking_by_dimension",
+        "path": "agents.0.amount",
+        "equals": 1500.0
+      },
+      {
+        "tool": "get_agent_ranking_by_dimension",
+        "path": "agents.1.amount",
+        "equals": 1000.0
+      }
+    ]
+  }
+}

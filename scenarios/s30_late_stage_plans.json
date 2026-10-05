@@ -1,0 +1,67 @@
+{
+  "id": "S30",
+  "title": "Where the open amount of late-stage plans sits",
+  "category": "factual",
+  "question": "Which portfolios hold the most open amount in late-stage plans?",
+  "session": {
+    "product_line": "auto",
+    "date_from": "2026-03-01",
+    "date_to": "2026-03-18"
+  },
+  "now": "2026-03-18T15:30:00",
+  "dataset": "datasets/basic.json",
+  "script": [
+    {
+      "tool_call": {
+        "name": "get_plan_stage_distribution",
+        "args": {
+          "stage": "late"
+        }
+      }
+    },
+    {
+      "final": {
+        "text": "Late-stage plans hold **$1,850.00** open in total. **Portfolio A-03** has the most (**$1,250.00**), then **Portfolio A-01** (**$450.00**) and **Portfolio A-02** (**$150.00**).",
+        "highlights": [],
+        "suggested_actions": [],
+        "data_sources": [
+          "get_plan_stage_distribution"
+        ],
+        "confidence": "high"
+      }
+    }
+  ],
+  "expect": {
+    "tools_any_of": [
+      "get_plan_stage_distribution"
+    ],
+    "params": [
+      {
+        "tool": "get_plan_stage_distribution",
+        "contains": {
+          "stage": "late"
+        }
+      }
+    ],
+    "answer": {
+      "traceable_numbers": true
+    },
+    "ground_truth": [
+      {
+        "tool": "get_plan_stage_distribution",
+        "path": "stages.late.open_amount",
+        "equals": 1850.0
+      },
+      {
+        "tool": "get_plan_stage_distribution",
+        "path": "stages.late.share_pct",
+        "equals": 37.5
+      },
+      {
+        "tool": "get_plan_stage_distribution",
+        "path": "portfolios.0.open_amount",
+        "equals": 1250.0
+      }
+    ]
+  }
+}

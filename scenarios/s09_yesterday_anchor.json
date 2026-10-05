@@ -1,0 +1,164 @@
+{
+  "id": "S09",
+  "title": "Relative date resolved from the anchor, not by the model",
+  "category": "temporal",
+  "question": "How much did each portfolio generate yesterday?",
+  "session": {
+    "product_line": "auto",
+    "date_from": "2026-03-01",
+    "date_to": "2026-03-18"
+  },
+  "now": "2026-03-18T15:30:00",
+  "dataset": "datasets/basic.json",
+  "dataset_patch": {
+    "auto": {
+      "status_rollup": [
+        {
+          "match": {
+            "start": "2026-03-17",
+            "end": "2026-03-17"
+          },
+          "rows": [
+            {
+              "portfolio_name": "Portfolio A-01",
+              "status_id": 10,
+              "qty": 2,
+              "amount": 800.0
+            },
+            {
+              "portfolio_name": "Portfolio A-02",
+              "status_id": 10,
+              "qty": 1,
+              "amount": 400.0
+            }
+          ]
+        },
+        {
+          "match": {
+            "start": "2026-03-01",
+            "end": "2026-03-18"
+          },
+          "rows": [
+            {
+              "portfolio_name": "Portfolio A-01",
+              "status_id": 10,
+              "qty": 8,
+              "amount": 4000.0
+            },
+            {
+              "portfolio_name": "Portfolio A-01",
+              "status_id": 30,
+              "qty": 2,
+              "amount": 1000.0
+            },
+            {
+              "portfolio_name": "Portfolio A-01",
+              "status_id": 20,
+              "qty": 2,
+              "amount": 1000.0
+            },
+            {
+              "portfolio_name": "Portfolio A-01",
+              "status_id": 40,
+              "qty": 1,
+              "amount": 500.0
+            },
+            {
+              "portfolio_name": "Portfolio A-02",
+              "status_id": 10,
+              "qty": 5,
+              "amount": 2500.0
+            },
+            {
+              "portfolio_name": "Portfolio A-02",
+              "status_id": 20,
+              "qty": 3,
+              "amount": 1500.0
+            },
+            {
+              "portfolio_name": "Portfolio A-02",
+              "status_id": 40,
+              "qty": 2,
+              "amount": 1000.0
+            },
+            {
+              "portfolio_name": "Portfolio A-02",
+              "status_id": 50,
+              "qty": 2,
+              "amount": 1000.0
+            },
+            {
+              "portfolio_name": "Portfolio A-03",
+              "status_id": 10,
+              "qty": 4,
+              "amount": 2000.0
+            },
+            {
+              "portfolio_name": "Portfolio A-03",
+              "status_id": 20,
+              "qty": 4,
+              "amount": 2000.0
+            },
+            {
+              "portfolio_name": "Portfolio A-03",
+              "status_id": 40,
+              "qty": 6,
+              "amount": 3000.0
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "script": [
+    {
+      "tool_call": {
+        "name": "drill_down_portfolio",
+        "args": {
+          "product_line": "auto",
+          "drilldown": "generation_ranking",
+          "date_from": "2026-03-17",
+          "date_to": "2026-03-17",
+          "page_size": 10
+        }
+      }
+    },
+    {
+      "final": {
+        "text": "On 2026-03-17 **Portfolio A-01** generated **$800.00** (2 agreements) and **Portfolio A-02** generated **$400.00** (1 agreement).",
+        "highlights": [],
+        "suggested_actions": [],
+        "data_sources": [
+          "drill_down_portfolio"
+        ],
+        "confidence": "high"
+      }
+    }
+  ],
+  "expect": {
+    "tools_any_of": [
+      "drill_down_portfolio"
+    ],
+    "params": [
+      {
+        "tool": "drill_down_portfolio",
+        "contains": {
+          "date_from": "2026-03-17",
+          "date_to": "2026-03-17",
+          "drilldown": "generation_ranking"
+        }
+      }
+    ],
+    "answer": {
+      "traceable_numbers": true,
+      "contains_date": "2026-03-17"
+    },
+    "ground_truth": [
+      {
+        "tool": "drill_down_portfolio",
+        "path": "ranking.0.generated_value",
+        "equals": 800.0
+      }
+    ]
+  }
+}

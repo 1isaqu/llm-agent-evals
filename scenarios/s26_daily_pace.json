@@ -1,0 +1,57 @@
+{
+  "id": "S26",
+  "title": "Pace of today against a baseline day",
+  "category": "temporal",
+  "question": "How is the day going?",
+  "session": {
+    "product_line": "auto",
+    "date_from": "2026-03-01",
+    "date_to": "2026-03-18"
+  },
+  "now": "2026-03-18T15:30:00",
+  "dataset": "datasets/basic.json",
+  "script": [
+    {
+      "tool_call": {
+        "name": "get_daily_pace",
+        "args": {}
+      }
+    },
+    {
+      "final": {
+        "text": "Today is running at **90.91%** of a normal day so far: **10.0** agreements against **11.0** expected. At this pace the day closes near **15.45** agreements.",
+        "highlights": [],
+        "suggested_actions": [],
+        "data_sources": [
+          "get_daily_pace"
+        ],
+        "confidence": "high"
+      }
+    }
+  ],
+  "expect": {
+    "tools_any_of": [
+      "get_daily_pace"
+    ],
+    "answer": {
+      "traceable_numbers": true
+    },
+    "ground_truth": [
+      {
+        "tool": "get_daily_pace",
+        "path": "on_pace_pct",
+        "equals": 90.91
+      },
+      {
+        "tool": "get_daily_pace",
+        "path": "expected_to_date",
+        "equals": 11.0
+      },
+      {
+        "tool": "get_daily_pace",
+        "path": "projected_close",
+        "equals": 15.45
+      }
+    ]
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "id": "X01",
+  "title": "Invented number, no tool call",
+  "category": "self_test",
+  "question": "How is Portfolio A-02?",
+  "session": {
+    "product_line": "auto",
+    "date_from": "2026-03-01",
+    "date_to": "2026-03-18"
+  },
+  "now": "2026-03-18T15:30:00",
+  "dataset": "datasets/basic.json",
+  "script": [
+    {
+      "final": {
+        "text": "**Portfolio A-02** has a composite risk of **37.5%**.",
+        "highlights": [],
+        "suggested_actions": [],
+        "data_sources": [],
+        "confidence": "high"
+      }
+    }
+  ],
+  "expect": {
+    "should_pass": false,
+    "expect_violations": [
+      "tool_selection:missing_expected_tool",
+      "faithfulness:untraceable_number"
+    ],
+    "tools_any_of": [
+      "get_portfolio_metrics"
+    ],
+    "answer": {
+      "traceable_numbers": true
+    }
+  },
+  "notes": "Self-test: the harness must report the declared violation."
+}

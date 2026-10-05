@@ -1,0 +1,42 @@
+{
+  "id": "X09",
+  "title": "An answer that is mostly 'not found' marked high confidence",
+  "category": "self_test",
+  "question": "How is Portfolio Z-99 doing?",
+  "session": {
+    "product_line": "auto",
+    "date_from": "2026-03-01",
+    "date_to": "2026-03-18"
+  },
+  "now": "2026-03-18T15:30:00",
+  "dataset": "datasets/basic.json",
+  "script": [
+    {
+      "tool_call": {
+        "name": "get_portfolio_metrics",
+        "args": {
+          "portfolio_name": "Portfolio Z-99"
+        }
+      }
+    },
+    {
+      "final": {
+        "text": "I could not find Portfolio Z-99.",
+        "highlights": [],
+        "suggested_actions": [],
+        "data_sources": [],
+        "confidence": "high"
+      }
+    }
+  ],
+  "expect": {
+    "should_pass": false,
+    "expect_violations": [
+      "outcome:confidence_mismatch"
+    ],
+    "confidence": [
+      "low"
+    ]
+  },
+  "notes": "Self-test: the harness must report the declared violation."
+}

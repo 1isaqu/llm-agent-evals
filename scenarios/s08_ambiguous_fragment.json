@@ -1,0 +1,57 @@
+{
+  "id": "S08",
+  "title": "A fragment that matches several portfolios",
+  "category": "fuzzy",
+  "question": "How risky is portfolio A-0?",
+  "session": {
+    "product_line": "auto",
+    "date_from": "2026-03-01",
+    "date_to": "2026-03-18"
+  },
+  "now": "2026-03-18T15:30:00",
+  "dataset": "datasets/basic.json",
+  "script": [
+    {
+      "tool_call": {
+        "name": "get_portfolio_metrics",
+        "args": {
+          "portfolio_name": "A-0"
+        }
+      }
+    },
+    {
+      "final": {
+        "text": "The fragment 'A-0' matches several portfolios. I am showing **Portfolio A-01**, which is at low risk (composite **15.38%**). It also matches **Portfolio A-02** and **Portfolio A-03**. Which one did you mean?",
+        "highlights": [],
+        "suggested_actions": [],
+        "data_sources": [
+          "get_portfolio_metrics"
+        ],
+        "confidence": "medium"
+      }
+    }
+  ],
+  "expect": {
+    "tools_any_of": [
+      "get_portfolio_metrics"
+    ],
+    "answer": {
+      "traceable_numbers": true,
+      "contains": [
+        "Portfolio A-02",
+        "Portfolio A-03",
+        "which one"
+      ]
+    },
+    "ground_truth": [
+      {
+        "tool": "get_portfolio_metrics",
+        "path": "composite_risk_pct",
+        "equals": 15.38
+      }
+    ],
+    "confidence": [
+      "medium"
+    ]
+  }
+}

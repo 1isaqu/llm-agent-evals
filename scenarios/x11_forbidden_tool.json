@@ -1,0 +1,46 @@
+{
+  "id": "X11",
+  "title": "A portfolio tool used for an agent question",
+  "category": "self_test",
+  "question": "Who are the best agents?",
+  "session": {
+    "product_line": "auto",
+    "date_from": "2026-03-01",
+    "date_to": "2026-03-18"
+  },
+  "now": "2026-03-18T15:30:00",
+  "dataset": "datasets/basic.json",
+  "script": [
+    {
+      "tool_call": {
+        "name": "filter_portfolios_by_risk",
+        "args": {
+          "level": "low"
+        }
+      }
+    },
+    {
+      "final": {
+        "text": "The best agents are in the low-risk portfolios.",
+        "highlights": [],
+        "suggested_actions": [],
+        "data_sources": [],
+        "confidence": "low"
+      }
+    }
+  ],
+  "expect": {
+    "should_pass": false,
+    "expect_violations": [
+      "tool_selection:missing_expected_tool",
+      "tool_selection:forbidden_tool"
+    ],
+    "tools_any_of": [
+      "list_agents_performance"
+    ],
+    "tools_forbidden": [
+      "filter_portfolios_by_risk"
+    ]
+  },
+  "notes": "Self-test: the harness must report the declared violation."
+}

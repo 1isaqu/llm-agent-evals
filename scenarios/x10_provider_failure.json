@@ -1,0 +1,25 @@
+{
+  "id": "X10",
+  "title": "The model provider fails and the scenario did not expect it",
+  "category": "self_test",
+  "question": "How is Portfolio A-02?",
+  "session": {
+    "product_line": "auto",
+    "date_from": "2026-03-01",
+    "date_to": "2026-03-18"
+  },
+  "now": "2026-03-18T15:30:00",
+  "dataset": "datasets/basic.json",
+  "script": [
+    {
+      "fail": "provider unavailable"
+    }
+  ],
+  "expect": {
+    "should_pass": false,
+    "expect_violations": [
+      "harness:model_error"
+    ]
+  },
+  "notes": "Self-test: the harness must report the declared violation."
+}

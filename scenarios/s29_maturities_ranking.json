@@ -1,0 +1,70 @@
+{
+  "id": "S29",
+  "title": "All portfolios in one call, not a loop",
+  "category": "multi_hop",
+  "question": "What do we expect to receive today, by portfolio?",
+  "session": {
+    "product_line": "auto",
+    "date_from": "2026-03-01",
+    "date_to": "2026-03-18"
+  },
+  "now": "2026-03-18T15:30:00",
+  "dataset": "datasets/basic.json",
+  "script": [
+    {
+      "tool_call": {
+        "name": "drill_down_portfolio",
+        "args": {
+          "product_line": "auto",
+          "drilldown": "maturities",
+          "date_from": "2026-03-18",
+          "date_to": "2026-03-18",
+          "page_size": 10
+        }
+      }
+    },
+    {
+      "final": {
+        "text": "**Portfolio A-01** has **$5,000.00** maturing and **$4,200.00** already received (**80.0%** of slips paid within the grace period). **Portfolio A-02** has **$3,000.00** maturing and **$1,400.00** received (**50.0%**).",
+        "highlights": [],
+        "suggested_actions": [],
+        "data_sources": [
+          "drill_down_portfolio"
+        ],
+        "confidence": "high"
+      }
+    }
+  ],
+  "expect": {
+    "tools_any_of": [
+      "drill_down_portfolio"
+    ],
+    "max_tool_calls": 1,
+    "params": [
+      {
+        "tool": "drill_down_portfolio",
+        "contains": {
+          "drilldown": "maturities"
+        },
+        "absent": [
+          "portfolio"
+        ]
+      }
+    ],
+    "answer": {
+      "traceable_numbers": true
+    },
+    "ground_truth": [
+      {
+        "tool": "drill_down_portfolio",
+        "path": "ranking.0.effectiveness_pct",
+        "equals": 80.0
+      },
+      {
+        "tool": "drill_down_portfolio",
+        "path": "ranking.1.effectiveness_pct",
+        "equals": 50.0
+      }
+    ]
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "id": "S17",
+  "title": "An agent's funnel, every figure from one result",
+  "category": "factual",
+  "question": "Show me Agent 01's funnel.",
+  "session": {
+    "product_line": "auto",
+    "date_from": "2026-03-01",
+    "date_to": "2026-03-18"
+  },
+  "now": "2026-03-18T15:30:00",
+  "dataset": "datasets/basic.json",
+  "script": [
+    {
+      "tool_call": {
+        "name": "get_agent_performance",
+        "args": {
+          "agent_name": "agent_01"
+        }
+      }
+    },
+    {
+      "final": {
+        "text": "**Agent 01** made **200 attempts**, reached **100 answers** (answer rate **50.0%**) and **40 right-party contacts** (CPC rate **40.0%**). That produced **10 agreements** worth **$5,000.00** (average ticket **$500.00**).",
+        "highlights": [
+          {
+            "type": "metric",
+            "label": "Answer rate",
+            "value": "50.0%"
+          }
+        ],
+        "suggested_actions": [],
+        "data_sources": [
+          "get_agent_performance"
+        ],
+        "confidence": "high"
+      }
+    }
+  ],
+  "expect": {
+    "tools_any_of": [
+      "get_agent_performance"
+    ],
+    "answer": {
+      "traceable_numbers": true,
+      "contains": [
+        "50.0%",
+        "40.0%"
+      ]
+    },
+    "ground_truth": [
+      {
+        "tool": "get_agent_performance",
+        "path": "answer_rate_pct",
+        "equals": 50.0
+      },
+      {
+        "tool": "get_agent_performance",
+        "path": "cpc_rate_pct",
+        "equals": 40.0
+      },
+      {
+        "tool": "get_agent_performance",
+        "path": "avg_ticket",
+        "equals": 500.0
+      }
+    ]
+  }
+}

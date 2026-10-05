@@ -1,0 +1,52 @@
+{
+  "id": "X04",
+  "title": "Right tool, wrong day for 'yesterday'",
+  "category": "self_test",
+  "question": "How much did each portfolio generate yesterday?",
+  "session": {
+    "product_line": "auto",
+    "date_from": "2026-03-01",
+    "date_to": "2026-03-18"
+  },
+  "now": "2026-03-18T15:30:00",
+  "dataset": "datasets/basic.json",
+  "script": [
+    {
+      "tool_call": {
+        "name": "drill_down_portfolio",
+        "args": {
+          "product_line": "auto",
+          "drilldown": "generation_ranking",
+          "date_from": "2026-03-16",
+          "date_to": "2026-03-16",
+          "page_size": 10
+        }
+      }
+    },
+    {
+      "final": {
+        "text": "Nothing was generated yesterday.",
+        "highlights": [],
+        "suggested_actions": [],
+        "data_sources": [],
+        "confidence": "medium"
+      }
+    }
+  ],
+  "expect": {
+    "should_pass": false,
+    "expect_violations": [
+      "params:missing_params"
+    ],
+    "params": [
+      {
+        "tool": "drill_down_portfolio",
+        "contains": {
+          "date_from": "2026-03-17",
+          "date_to": "2026-03-17"
+        }
+      }
+    ]
+  },
+  "notes": "Self-test: the harness must report the declared violation."
+}
