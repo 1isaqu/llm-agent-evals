@@ -88,9 +88,12 @@ def cmd_eval(args: argparse.Namespace) -> int:
 
 
 def _session_from(args: argparse.Namespace, today: date) -> Session:
-    end = date.fromisoformat(args.to) if args.to else today
-    start = date.fromisoformat(args.start) if args.start else end.replace(day=1)
-    return Session(args.line, Window(start, end))
+    try:
+        end = date.fromisoformat(args.to) if args.to else today
+        start = date.fromisoformat(args.start) if args.start else end.replace(day=1)
+        return Session(args.line, Window(start, end))
+    except ValueError as exc:
+        raise AgentError(f"invalid window: {exc}") from exc
 
 
 def cmd_ask(args: argparse.Namespace) -> int:

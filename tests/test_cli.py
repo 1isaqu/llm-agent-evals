@@ -234,3 +234,12 @@ def test_an_unknown_command_is_an_argparse_error(capsys):
     with pytest.raises(SystemExit) as caught:
         cli.main(["nonsense"])
     assert caught.value.code == 2
+
+
+def test_ask_rejects_a_bad_or_reversed_window_with_an_error_exit(capsys):
+    code, _, err = run(
+        capsys, "ask", "status breakdown", "--from", "2026-03-18", "--to", "2026-03-01"
+    )
+    assert code == 2 and "invalid window" in err
+    code, _, err = run(capsys, "ask", "status breakdown", "--to", "March")
+    assert code == 2 and "invalid window" in err

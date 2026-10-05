@@ -28,9 +28,9 @@ confidence). The engineering is in making that loop checkable.
   before any ratio is computed.
 - **An evaluation harness with eight assertion layers** (tool selection, SQL channel, parameters,
   numeric faithfulness, ground truth, answer wording, false unavailability, outcome). Violations
-  are structured (`layer:code`) and scores come from the layer, never from searching a message. Self-test scenarios script a
-  mistake on purpose and declare the violation the harness must report, which shows each layer can
-  fail.
+  are structured (`layer:code`) and scores come from the layer, never from searching a message.
+  Self-test scenarios script a mistake on purpose and declare the violation the harness must
+  report, which shows each layer can fail.
 - **A reliability ledger that is data.** A verifier resolves every scenario and test it cites, and
   a test fails when the generated documents drift.
 - **A privacy net.** The data contract has no personal identifier, and an egress guard inspects
@@ -118,8 +118,9 @@ llm-agent-evals eval --live --min pass_rate=80
 ```
 
 `openai_compatible` works with any server that speaks the chat-completions protocol (set
-`LLM_BASE_URL`). Both adapters are tested through an injected transport only. **They have not been
-called against a live provider.** `eval --live` skips the self-tests and costs real tokens.
+`LLM_BASE_URL`). Both adapters are tested through an injected transport and against a local fake
+provider on `127.0.0.1`. **They have not been called against a live provider.** `eval --live`
+skips the self-tests and costs real tokens.
 
 ## Connect your own data
 
@@ -151,9 +152,11 @@ result = agent.run(
 print(result.response["text"], result.response["confidence"])
 ```
 
-`pip install ".[sqlserver]"` adds `pyodbc`. The SQL Server path (T-SQL generation and the
-connection helper) is tested as text and with an injected driver, **not against a live server**.
-For another database, implement `DataSource` and skip `sources/sql.py`.
+`pip install ".[sqlserver]"` adds `pyodbc`. `ask` and `serve` also accept `--backend sqlserver`,
+which opens one read-only connection per product line from the `DB_*` variables. The SQL Server
+path (T-SQL generation and the connection helper) is tested as text and with an injected driver,
+**not against a live server**. For another database, implement `DataSource` and skip
+`sources/sql.py`.
 
 ## Configuration
 
@@ -208,8 +211,9 @@ ruff check . && ruff format --check .
 ```
 
 The tests use small inline fixtures with invented values. SQL is executed on in-memory SQLite. The
-HTTP transport test talks to a throwaway server on `127.0.0.1`. Nothing needs a key or a database.
-CI (`.github/workflows/ci.yml`) runs the same commands with the mock model only.
+HTTP adapters are also driven end to end against a throwaway fake provider on `127.0.0.1`. Nothing
+needs a key or a database. CI (`.github/workflows/ci.yml`) runs the same commands with the mock
+model only.
 
 The suite was run locally on Python 3.14 only. The CI matrix (3.11 to 3.14) is configured but has
 not run yet.
