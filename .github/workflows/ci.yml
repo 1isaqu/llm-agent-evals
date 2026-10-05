@@ -1,0 +1,50 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  # The mock model only. No secret is configured and none is needed.
+  LLM_PROVIDER: mock
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13", "3.14"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          allow-prereleases: true
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+
+      - name: Lint
+        run: |
+          ruff check .
+          ruff format --check .
+
+      - name: Tests
+        run: python -m pytest
+
+      - name: Scenarios (scripted model, every expectation must hold)
+        run: llm-agent-evals eval --min pass_rate=100 --min detection_rate=100
+
+      - name: Reliability ledger resolves against the repository
+        run: llm-agent-evals ledger verify
+
+      - name: Metric registry snapshot is current
+        run: llm-agent-evals metrics --check docs/metric-registry.default.json
