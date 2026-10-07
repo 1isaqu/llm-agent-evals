@@ -139,7 +139,7 @@ from llm_agent_evals.session import Session, Window
 from llm_agent_evals.settings import LLMSettings
 from llm_agent_evals.sources import SQLSERVER, CachedSource, SqlDataSource, connect_sqlserver
 
-config = BusinessConfig(risk_low_max=10.0, risk_medium_max=30.0, grace_days=5)  # calibrate these
+config = BusinessConfig(risk_low_max=10.0, risk_medium_max=30.0, grace_days=7)  # calibrate these
 sources = {
     line: CachedSource(SqlDataSource(connect_sqlserver(os.environ, line), SQLSERVER, config))
     for line in ("auto", "consumer")
@@ -193,9 +193,9 @@ Environment variables (see `.env.example`; the package does not read `.env` file
 | `excluded_agent_patterns` | `system%`, `test%` | SQL `LIKE` patterns on the agent login, applied in SQL |
 | `first_installment_no` | `0` | The installment number of the down payment |
 | `max_window_days` | `93` | Longest window a single tool call may span |
-| `plan_lookback_days`, `plan_late_remaining` | `150`, `2` | Plan-stage base and the "late" threshold |
+| `plan_lookback_days`, `plan_late_remaining` | `150`, `3` | Plan-stage base and the "late" threshold |
 | `crosstab_limit`, `stage_portfolio_limit` | `12`, `8` | Rows returned by those views |
-| `pace_first_hour`, `pace_last_hour`, `pace_min_history_days` | `8`, `19`, `3` | Daily-pace window |
+| `pace_first_hour`, `pace_last_hour`, `pace_min_history_days` | `9`, `18`, `3` | Daily-pace window |
 
 Guard numbers (`RunGuard`: ceiling of 8 steps, 60 seconds, 1,500 tokens per result, a 12,000-token
 request budget) are engineering defaults you can pass to `Agent(guard=...)`.

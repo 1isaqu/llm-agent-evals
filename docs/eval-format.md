@@ -38,7 +38,7 @@ correct. A real model is measured only in live mode.
     {"final": {"text": "...", "highlights": [], "suggested_actions": [], "data_sources": [], "confidence": "high"}}
   ],
   "limits": {"max_steps": 8, "max_rounds": 8, "wall_clock_seconds": 60, "clock_tick_seconds": 0},
-  "config": {"grace_days": 5},
+  "config": {"grace_days": 7},
   "expect": { "...": "see below" },
   "notes": "free text"
 }
@@ -127,7 +127,7 @@ A violation is `Violation(layer, code, message, details)` and is referred to as 
 | `outcome` | `confidence_mismatch`, `degraded_mismatch`, `forced_final_mismatch`, `tool_error_not_observed`, `not_json` |
 | `harness` | `script_exhausted`, `model_error`, `model_error_missing`, `run_failed` |
 
-**What the numeric check does.** It reads the numbers in the answer (`1,234.50`, `22.4%`, `$1.61M`,
+**What the numeric check does.** It reads the numbers in the answer (`1,234.50`, `23.8%`, `$2.35M`,
 `-31.11%`), ignores ISO dates, and compares each value of at least 10 with every number in the tool
 results the model saw (also numbers inside strings, such as the 12 in `Portfolio A-12`) and in the
 question. A match is within 1% (at least 0.5). Values of at least 100 may also match the sum of two

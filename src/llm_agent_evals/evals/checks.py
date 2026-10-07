@@ -178,7 +178,7 @@ PAIR_SUM_MIN = 100.0
 
 
 def parse_number(token: str) -> float | None:
-    """`1,234.50`, `22.4%`, `$1.61M` (the `$` is not part of the token) to a float."""
+    """`1,234.50`, `23.8%`, `$2.35M` (the `$` is not part of the token) to a float."""
     text = token.rstrip("%").replace(",", "")
     scale = 1.0
     if text and text[-1].lower() in _SUFFIX:

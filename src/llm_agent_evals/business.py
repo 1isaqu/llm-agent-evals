@@ -56,13 +56,13 @@ class BusinessConfig:
 
     max_window_days: int = 93
     plan_lookback_days: int = 150
-    plan_late_remaining: int = 2
+    plan_late_remaining: int = 3
 
     crosstab_limit: int = 12
     stage_portfolio_limit: int = 8
 
-    pace_first_hour: int = 8
-    pace_last_hour: int = 19
+    pace_first_hour: int = 9
+    pace_last_hour: int = 18
     pace_min_history_days: int = 3
 
     def __post_init__(self) -> None:

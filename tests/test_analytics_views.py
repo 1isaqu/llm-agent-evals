@@ -243,7 +243,7 @@ def test_pace_compares_today_with_the_mean_hourly_profile():
     source = hourly_source(today_counts={9: 2, 10: 2, 11: 4, 12: 1, 14: 1})
     result = BaselinePace().forecast(source, datetime(2026, 3, 18, 15, 30), CONFIG)
     assert result["expected_total"] == 17.0
-    assert result["expected_to_date"] == 11.0  # hours 8..14
+    assert result["expected_to_date"] == 11.0  # hours 9..14
     assert result["actual_to_date"] == 10.0
     assert result["on_pace_pct"] == 90.91
     assert result["projected_close"] == 15.45  # 10 / (11 / 17)

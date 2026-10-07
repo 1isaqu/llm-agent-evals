@@ -64,9 +64,9 @@ def test_pace_hours_must_be_ordered():
 
 
 def test_from_mapping_converts_lists_and_rejects_unknown_keys():
-    config = BusinessConfig.from_mapping({"excluded_agent_patterns": ["bot%"], "grace_days": 5})
+    config = BusinessConfig.from_mapping({"excluded_agent_patterns": ["bot%"], "grace_days": 7})
     assert config.excluded_agent_patterns == ("bot%",)
-    assert config.grace_days == 5
+    assert config.grace_days == 7
     with pytest.raises(ConfigError, match="unknown business config keys: nope"):
         BusinessConfig.from_mapping({"nope": 1})
 

@@ -270,7 +270,7 @@ def test_plan_stage_follows_payment_progress():
         1: (3, 0),
         2: (3, 1),
         3: (4, 2),
-        4: (6, 3),
+        4: (7, 3),
         5: (2, 2),
     }  # agreement: (installments, paid)
     for agreement, (total, paid) in plans.items():
@@ -285,7 +285,7 @@ def test_plan_stage_follows_payment_progress():
     stages = {r["stage"]: r for r in db.source().plan_stage_rollup(date(2026, 3, 18))}
     assert stages["early"]["qty"] == 2  # 0 and 1 paid
     assert stages["late"]["qty"] == 1  # 2 left of 4 (<= plan_late_remaining)
-    assert stages["middle"]["qty"] == 1  # 3 left of 6
+    assert stages["middle"]["qty"] == 1  # 4 left of 7
     assert stages["settled"]["qty"] == 1
     assert stages["settled"]["open_amount"] == 0.0
     assert stages["early"]["open_amount"] == 30.0 + 20.0
@@ -411,8 +411,8 @@ def test_sqlite_text_has_no_table_hints():
 def test_sql_server_uses_its_own_date_and_grace_functions():
     sql = ContractQueries(BusinessConfig(), SQLSERVER).hourly_counts(WINDOW).sql
     assert "DATEPART(hour" in sql and "CAST(d.issued_at AS DATE)" in sql
-    grace = ContractQueries(BusinessConfig(grace_days=5), SQLSERVER).financial_by_agent(WINDOW).sql
-    assert "DATEADD(day, 5, d.due_at)" in grace
+    grace = ContractQueries(BusinessConfig(grace_days=7), SQLSERVER).financial_by_agent(WINDOW).sql
+    assert "DATEADD(day, 7, d.due_at)" in grace
 
 
 def test_hostile_text_is_bound_as_a_parameter_never_spliced_into_the_sql():
