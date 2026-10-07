@@ -15,7 +15,6 @@ from llm_agent_evals.session import Session, Window
 from llm_agent_evals.settings import AgentSettings
 from llm_agent_evals.sources.fixture import FixtureSource
 from tests.helpers import (
-    BASE_STATUS,
     NOW,
     SESSION,
     ask,
@@ -358,8 +357,24 @@ def test_the_conversation_is_compacted_when_the_tool_budget_nears_its_limit():
     assert ids == {m.tool_call_id for m in last.messages if m.role == "tool"}
 
 
+class StatusCountingSource(FixtureSource):
+    def __init__(self, sections):
+        super().__init__(sections)
+        self.status_calls = 0
+
+    def status_rollup(self, window):
+        self.status_calls += 1
+        return super().status_rollup(window)
+
+
 def test_the_base_dataset_is_loaded_once_per_session_window():
-    source = CountingSource(base_sections())
-    agent = Agent(make_agent([final()]).llm, {"auto": source}, now=lambda: NOW)
-    assert agent.run([Message("user", "q")], SESSION).degraded is None
-    assert len(BASE_STATUS) == 5
+    source = StatusCountingSource(base_sections())
+    script = [
+        call("get_portfolio_metrics", portfolio_name="Portfolio T-01"),
+        call("filter_portfolios_by_risk", level="high"),
+        final(),
+    ]
+    agent = Agent(make_agent(script).llm, {"auto": source}, now=lambda: NOW)
+    result = agent.run([Message("user", "q")], SESSION)
+    assert result.degraded is None and len(result.calls) == 2
+    assert source.status_calls == 1
