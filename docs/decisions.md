@@ -56,8 +56,9 @@ analytics with canned rows. Only the SQL itself needs a database to be exercised
 ## 7. Rows are additive across product lines
 
 Two lines are combined by concatenating rows, then recomputing every ratio once. Averaging two
-conversion rates is wrong (a 50% line with ten contacts and a 10% line with ninety do not average
-to 30%). Because the rows are counters, a merge cannot be done wrong by accident.
+conversion rates is wrong (a 50% line with ten contacts and a 10% line with ninety combine to
+14%, not the 30% a plain average of the two rates gives). Because the rows are counters, a merge
+cannot be done wrong by accident.
 
 ## 8. Risk: one denominator, composite is the maximum
 
@@ -112,7 +113,7 @@ cannot change a score, and nothing attributes a failure to a metric by searching
 
 ## 15. The numeric check is a safety net, not a proof
 
-It extracts numbers from the answer and requires each one of at least 10 to match a number the
+It extracts numbers from the answer and requires every number of 10 or more to match a number the
 model actually saw (in a tool result, in a string of a result, or in the question), or, for values
 of 100 and above, the sum of two such numbers. It catches an invented number. It cannot catch a
 real number on the wrong label, which `forbidden` wording and hand-computed ground truth are for.

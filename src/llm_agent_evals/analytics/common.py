@@ -4,7 +4,7 @@ The single-denominator rule lives here, once. Every percentage the agent reports
 risk is a slice of the *first-installment universe*: generated value plus exception
 value plus rejected value. Because every slice is a fraction of the same total, the
 slices are comparable between portfolios, and a slice above 100% is impossible unless
-the underlying rows are corrupt (duplicated agreements, mismatched windows).
+the underlying rows are corrupt (negative amounts, mismatched windows).
 
 Broken value is a subset of generated value, so the three risk slices overlap and are
 not additive. That is why composite risk is the *maximum* slice and never the sum.
