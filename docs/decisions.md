@@ -95,7 +95,7 @@ across aggregates.
 
 `ScriptedLLM` replays a fixed script and is what scenarios use. `RuleBasedLLM` answers any question
 from keyword rules, so the CLI, the HTTP service and a fresh clone work with no key. Neither uses
-randomness or the network. Neither pretends to be a model.
+randomness or the network, and neither imitates a language model.
 
 ## 13. Scenarios measure the machinery; self-tests measure the harness
 
@@ -135,7 +135,7 @@ shielded: a failing observer cannot fail a request.
 
 ## 18. The ledger is data
 
-A page of claims decays. The ledger is a JSON file; a verifier resolves every scenario, test and
+A hand-written page of claims goes stale. The ledger is a JSON file; a verifier resolves every scenario, test and
 module it cites; a generator renders Markdown and HTML; a test fails when the committed documents
 differ from the generated ones.
 

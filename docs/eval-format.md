@@ -127,14 +127,14 @@ A violation is `Violation(layer, code, message, details)` and is referred to as 
 | `outcome` | `confidence_mismatch`, `degraded_mismatch`, `forced_final_mismatch`, `tool_error_not_observed`, `not_json` |
 | `harness` | `script_exhausted`, `model_error`, `model_error_missing`, `run_failed` |
 
-**What the numeric check does.** It reads the numbers in the answer (`1,234.50`, `23.8%`, `$2.35M`,
+The numeric check reads the numbers in the answer (`1,234.50`, `23.8%`, `$2.35M`,
 `-31.11%`), ignores ISO dates, and compares each value of at least 10 with every number in the tool
 results the model saw (also numbers inside strings, such as the 12 in `Portfolio A-12`) and in the
 question. A match is within 1% (at least 0.5). Values of at least 100 may also match the sum of two
 such numbers. It catches an invented figure. It cannot catch a real figure on the wrong label, and
 it reports a total that a model added up from three or more numbers.
 
-**What false unavailability uses.** The guard's own telemetry for each call (`error_type` and
+The false-unavailability check uses the guard's own telemetry for each call (`error_type` and
 `row_count`), not the script, so it measures what the tools actually returned.
 
 ## Metrics

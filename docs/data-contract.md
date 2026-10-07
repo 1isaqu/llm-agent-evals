@@ -4,8 +4,8 @@ The agent never sees your database. It sees nine *rollup* methods (the `DataSour
 the SQL in `sources/sql.py` implements them over eight neutral tables. You connect your own data
 in one of two ways:
 
-1. **Map your database to the eight tables** (views are fine) and use `SqlDataSource` as it is.
-2. **Implement `DataSource` yourself** and return the rollup rows described in the second half of
+1. Map your database to the eight tables (views are fine) and use `SqlDataSource` as it is.
+2. Implement `DataSource` yourself and return the rollup rows described in the second half of
    this page. The analytics, the tools and the agent do not care where the rows come from.
 
 All data in this repository is invented. Nothing here describes a real system.
@@ -25,13 +25,13 @@ schema (`sources/schema.py`); on SQL Server any compatible type works (`datetime
 | `installment_no` | integer | `0` is the first installment (the down payment). The value is configurable (`first_installment_no`). |
 | `amount` | decimal | Amount due for this installment. |
 | `paid_amount` | decimal, null | Amount paid. A value above zero means the installment is paid. |
-| `issued_at` | datetime | When the row was issued. **This is the date filter column** for every windowed query. |
+| `issued_at` | datetime | When the row was issued. This is the date filter column for every windowed query. |
 | `due_at` | datetime | Due date of the installment. |
 | `paid_at` | datetime, null | When it was paid. |
 | `status_id` | integer | Foreign key to `agreement_statuses`. See "Status sets". |
 | `agent_id` | integer | Foreign key to `agents`: who owns the agreement. |
 
-The table can hold **several rows for the same `(agreement_id, portfolio_id, installment_no)`**,
+The table can hold several rows for the same `(agreement_id, portfolio_id, installment_no)`,
 for example when a system re-writes an installment. Every query keeps only the latest one (highest
 `issued_at`, then highest `record_id`). The window and status filters are applied *before* that
 ranking, inside the derived table. See `docs/decisions.md` for why.
@@ -70,7 +70,7 @@ result deterministic and one row per installment.
 | `due_at` | datetime |
 | `days_overdue` | integer |
 
-Part of the shared contract and created by the demo schema, but **no current query reads it**. It
+Part of the shared contract and created by the demo schema, but no current query reads it. It
 is here so that a tool needing balances or ageing has an agreed place to look.
 
 ### `contact_events`: one row per outreach attempt
@@ -98,7 +98,7 @@ Funnel definitions (all counts):
 - `answer_count` = events whose result has `answered = 1`
 - `cpc_count` (right-party contact) = events whose result has `answered = 1 AND right_party = 1`
 
-So `attempt_count >= answer_count >= cpc_count`, always. `cpc_count` is a **count**, never a
+So `attempt_count >= answer_count >= cpc_count`, always. `cpc_count` is a count, never a
 percentage.
 
 ### `agreement_statuses`: the status catalogue
@@ -126,7 +126,7 @@ to your ids; the demo uses invented numbers (10, 20, 30, ...). The sets are defi
 
 | Label | Meaning |
 |---|---|
-| `ACTIVE`, `PAID`, `PAID_MANUAL` | **approved** |
+| `ACTIVE`, `PAID`, `PAID_MANUAL` | approved |
 | `BROKEN`, `AUTO_BROKEN` | the agreement broke later, manually or automatically |
 | `PENDING_EXCEPTION` | the exception: value pending approval |
 | `REJECTED` | refused by a supervisor |
@@ -145,13 +145,13 @@ follow, because they all read the same object.
 ## Excluded agents
 
 `BusinessConfig.excluded_agent_patterns` (default `("system%", "test%")`) are SQL `LIKE` patterns
-matched case-insensitively against `agents.login`. They are applied **in SQL**, never after the
+matched case-insensitively against `agents.login`. They are applied in SQL, never after the
 fact, so an excluded agent cannot leak into a total.
 
 ## Part 2: the nine rollup methods
 
 `DataSource` is a `Protocol`. A method returns a list of plain dicts with lower-case keys. Rows
-are **additive**: combining two product lines is concatenation, because every aggregation sums
+are additive: combining two product lines is concatenation, because every aggregation sums
 rows that share a key and recomputes ratios afterwards.
 
 | Method | Row keys |
@@ -172,14 +172,14 @@ cannot serve the data at all.
 
 Definitions every implementation must respect:
 
-- `amount` in the status rollups is the **first-installment** amount, one per agreement, after
+- `amount` in the status rollups is the first-installment amount, one per agreement, after
   de-duplication.
 - `agreement_count` counts agreements (`COUNT DISTINCT agreement_id`).
   `agreement_count_by_contract` counts `(agreement, portfolio, debt)` triples. The second is only
   for totals; ticket and conversion always use the first.
 - `agreement_value` is the sum over *all* installments of generated agreements whose first
   installment was issued in the window.
-- A slip is **paid within the grace period** when `paid_amount > 0` and
+- A slip is paid within the grace period when `paid_amount > 0` and
   `paid_at <= due_at + grace_days`.
 - `plan_stage_rollup` covers approved agreements issued in the `plan_lookback_days` before `end`.
   An installment with `paid_amount > 0` is paid. Stage is `settled` when all are paid, `early`
@@ -202,10 +202,10 @@ conn = connect_sqlserver(os.environ, "auto")
 source = SqlDataSource(conn, SQLSERVER, config)
 ```
 
-**What has not been exercised.** The generated T-SQL is unit-tested as text (every table hinted,
-every placeholder bound, a single read-only statement). It has never been executed against a live
-SQL Server. The SQLite versions of the same queries are executed in the test suite against small
-in-memory databases. `connect_sqlserver` is tested with an injected fake `connect`.
+The generated T-SQL is unit-tested as text (every table hinted, every placeholder bound, a single
+read-only statement), but it has never been executed against a live SQL Server. The SQLite
+versions of the same queries are executed in the test suite against small in-memory databases.
+`connect_sqlserver` is tested with an injected fake `connect`.
 
 The connection string sets `ApplicationIntent=ReadOnly`, and `SqlDataSource` refuses to execute
 any statement that is not a single `SELECT` (or `WITH ... SELECT`). Give the database login only
