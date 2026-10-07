@@ -92,3 +92,15 @@ def test_sqlserver_sources_open_one_connection_per_line_through_an_injected_driv
     )
     assert set(sources) == {"auto", "consumer"}
     assert "DATABASE=demo;" in opened[0] and "DATABASE=demo_consumer;" in opened[1]
+
+
+def test_the_cache_ttl_setting_reaches_the_sql_server_sources(monkeypatch):
+    seen = {}
+
+    def fake_sources(env, config, cache_ttl=60.0, connect=None):
+        seen["ttl"] = cache_ttl
+        return demo_sources(config)
+
+    monkeypatch.setattr("llm_agent_evals.runtime.sqlserver_sources", fake_sources)
+    build_agent({"AGENT_CACHE_TTL_SECONDS": "5"}, backend="sqlserver")
+    assert seen["ttl"] == 5.0
