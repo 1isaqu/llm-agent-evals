@@ -40,16 +40,16 @@ _ALIASES = {
 _KPIS: dict[str, dict[str, str]] = {
     "attempt_count": {
         "formula": "number of outreach events in the window",
-        "source": "analytics/agents.py (effort query)",
+        "source": "sources/sql.py (ContractQueries.effort_by_agent)",
     },
     "answer_count": {
         "formula": "outreach events whose result is flagged answered",
-        "source": "analytics/agents.py (effort query)",
+        "source": "sources/sql.py (ContractQueries.effort_by_agent)",
     },
     "cpc": {
         "formula": "cpc_count = outreach events flagged answered AND right_party. "
         "A count, never a percentage.",
-        "source": "analytics/agents.py (effort query)",
+        "source": "sources/sql.py (ContractQueries.effort_by_agent)",
     },
     "answer_rate_pct": {
         "formula": "answer_count / attempt_count * 100. Always label it 'answer rate', "
