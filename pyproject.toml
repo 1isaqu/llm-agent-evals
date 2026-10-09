@@ -14,10 +14,20 @@ authors = [{ name = "Isaque Carvalho" }]
 keywords = ["llm", "agents", "evaluation", "tool-calling", "analytics", "testing"]
 classifiers = [
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Software Development :: Testing",
     "Topic :: Scientific/Engineering :: Information Analysis",
 ]
 dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/1isaqu/llm-agent-evals"
+Repository = "https://github.com/1isaqu/llm-agent-evals"
+Issues = "https://github.com/1isaqu/llm-agent-evals/issues"
 
 [project.optional-dependencies]
 sqlserver = ["pyodbc>=5"]
