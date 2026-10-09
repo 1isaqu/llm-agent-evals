@@ -37,6 +37,21 @@ def test_code_fences_prose_and_raw_line_breaks_are_tolerated():
     assert ok and response["text"] == "line one\nline two"
 
 
+def test_prose_after_the_object_is_ignored_with_or_without_a_code_fence():
+    trailing = json.dumps(GOOD) + "\n\nLet me know if you need more."
+    response, ok = parse_final_text(trailing)
+    assert ok and response == GOOD
+    fenced = "```json\n" + json.dumps(GOOD) + "\n```\nLet me know if you need more."
+    response, ok = parse_final_text(fenced)
+    assert ok and response == GOOD
+
+
+def test_a_brace_inside_a_string_does_not_end_the_object_early():
+    raw = '{"text": "use {curly} braces } here", "confidence": "high"} trailing }'
+    response, ok = parse_final_text(raw)
+    assert ok and response["text"] == "use {curly} braces } here"
+
+
 @pytest.mark.parametrize("text", ["Plain sentence.", "", "[1, 2, 3]", "{broken", '"just a string"'])
 def test_text_that_is_not_an_object_degrades_to_low_confidence_without_raising(text):
     response, ok = parse_final_text(text)
@@ -99,6 +114,7 @@ def test_data_sources_must_be_a_list_of_non_empty_strings():
 def test_extract_returns_none_when_there_is_no_object():
     assert extract_json_object("nothing here") is None
     assert extract_json_object("}{") is None
+    assert extract_json_object('{"text": "unterminated", {"label": "inner"}') is None
 
 
 def test_unsafe_text_is_replaced_and_never_echoed():
