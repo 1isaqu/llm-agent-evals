@@ -29,19 +29,20 @@ from two product lines are added before any ratio is computed.
 
 The evaluation harness has eight assertion layers: tool selection, SQL channel, parameters,
 numeric faithfulness, ground truth, answer wording, false unavailability and outcome. Violations
-are structured (`layer:code`) and scores are counted per layer, so rewording a message cannot
-change a score. Self-test scenarios script a mistake on purpose and declare the violation the
+are structured (`layer:code`) and scores are counted per layer, so rewording a violation message
+cannot change a score. Self-test scenarios script a mistake on purpose and declare the violation the
 harness must report, which shows that each layer can fail.
 
 The reliability ledger is a data file, `ledger/entries.json`, and its documents in `docs/` are
 generated from it. A verifier resolves every scenario and test it cites, and a test fails when the
 generated documents drift.
 
-The data contract has no customer name, document, phone or e-mail field. Its only debtor-side key
-is the opaque `debt_owner_id` in `contact_events`, and no query reads it. An egress guard inspects
-every tool result before a model sees it. Agent names and logins do reach the model, because
-per-agent answers need them. At runtime the package uses only the standard library: there is no
-provider SDK, web framework or pydantic dependency.
+The data contract has no customer name, document, phone or e-mail field. The two columns that
+could link a row to a customer once real data is mapped are `contact_events.debt_owner_id` and
+`debts.contract_no`, and no query reads either. An egress guard inspects every tool result before
+a model sees it. Agent names and logins do reach the model, because per-agent answers need them. At
+runtime the package uses only the standard library: there is no provider SDK, web framework or
+pydantic dependency.
 
 ## Architecture
 
@@ -239,9 +240,7 @@ ruff format --check .
 The tests use small inline fixtures with invented values. SQL is executed on in-memory SQLite. The
 HTTP adapters are also driven end to end against a throwaway fake provider on `127.0.0.1`. Nothing
 needs a key or a database. CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs the same
-commands with the mock model only.
-
-The suite was run locally on Python 3.14. CI runs it on 3.11 to 3.14.
+commands with the mock model only, on Python 3.11 to 3.14.
 
 ## Project layout
 
@@ -291,10 +290,10 @@ calibrated values go, and the agent's statements about risk level mean nothing u
 calibrated on your own data. The guard ceilings are untuned engineering defaults.
 
 The daily pace is a simple baseline: the mean hourly profile of recent past days that have rows. A
-day with no rows in the pace hours drops out of the history. Weekends and holidays usually have
-none, but neither does a working day that produced nothing, so after quiet days the expected total
-reads slightly high. Every day that has rows, weekend or not, feeds the same profile. A forecast
-model would plug in through the `PaceProvider` protocol.
+day with no rows in the pace hours drops out of the history. That usually removes weekends and
+holidays, and it also removes a working day that produced nothing, so after quiet days the expected
+total reads slightly high. Every day that has rows, weekend or not, feeds the same profile. A
+forecast model would plug in through the `PaceProvider` protocol.
 
 The egress guard is a safety net: it cannot recognise a name in free text, it can redact a long id
 or a very large whole-number total by mistake, and it does not inspect the user's own message. The
