@@ -127,8 +127,21 @@ def test_long_conversations_are_trimmed_to_the_last_messages_and_each_is_cut():
         ]
     history.append({"role": "user", "content": "last"})
     messages = parse_messages(history)
-    assert len(messages) == MAX_MESSAGES and messages[-1].content == "last"
+    assert len(messages) <= MAX_MESSAGES and messages[-1].content == "last"
     assert all(len(m.content) <= MAX_MESSAGE_CHARS for m in messages)
+
+
+def test_a_trimmed_conversation_never_starts_with_an_assistant_turn():
+    # Alternating turns that end on a user turn always cut onto an assistant turn.
+    alternating = [
+        {"role": "user" if i % 2 == 0 else "assistant", "content": f"m{i}"}
+        for i in range(MAX_MESSAGES + 1)
+    ]
+    trimmed = parse_messages(alternating)
+    assert trimmed[0].role == "user" and trimmed[-1].content == f"m{MAX_MESSAGES}"
+    assert len(trimmed) == MAX_MESSAGES - 1 and trimmed[0].content == "m2"
+    only_user = [{"role": "user", "content": f"m{i}"} for i in range(MAX_MESSAGES + 1)]
+    assert len(parse_messages(only_user)) == MAX_MESSAGES
 
 
 def test_parse_messages_strips_whitespace():
