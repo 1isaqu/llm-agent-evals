@@ -81,7 +81,7 @@ To add a data backend, implement the nine methods of `DataSource` (see `docs/dat
 and pass `{"line_name": source}` to `Agent`. Wrap it in `CachedSource` if the queries are slow.
 
 To add a model provider, implement `LLMClient.complete(ModelRequest) -> ModelTurn`. The two shipped
-adapters are about 120 lines each and only translate between the neutral types and one wire
+adapters are about 130 to 140 lines each and only translate between the neutral types and one wire
 format.
 
 To use a different pace model, implement `PaceProvider.forecast(source, now, config)` and pass it

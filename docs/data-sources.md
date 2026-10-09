@@ -39,5 +39,7 @@ export does not end up in a commit by accident.
 - Lookup tables, thresholds or models derived from real data. The pace baseline is the mean
   hourly profile of recent past days that have rows, with a protocol (`PaceProvider`) where a
   fitted model can be plugged in by whoever owns the data.
-- Customer identifiers. The contract has none, and an egress guard checks every tool result
-  before a model sees it. Agent names and logins are in the contract and are invented here.
+- Customer identifiers. The contract has no customer name, document, phone or e-mail field. Its
+  only debtor-side key is the opaque `debt_owner_id` in `contact_events`, and no query reads it.
+  An egress guard checks every tool result before a model sees it. Agent names and logins are in
+  the contract and are invented here.

@@ -36,10 +36,11 @@ which shows that each layer can fail.
 The reliability ledger is data. A verifier resolves every scenario and test it cites, and a test
 fails when the generated documents drift.
 
-The data contract holds no customer identifier, and an egress guard inspects every tool result
-before a model sees it. Agent names and logins do reach the model, because per-agent answers need
-them. At runtime the package uses only the standard library: there is no provider SDK, web
-framework or pydantic dependency.
+The data contract has no customer name, document, phone or e-mail field. Its only debtor-side key
+is the opaque `debt_owner_id` in `contact_events`, and no query reads it. An egress guard inspects
+every tool result before a model sees it. Agent names and logins do reach the model, because
+per-agent answers need them. At runtime the package uses only the standard library: there is no
+provider SDK, web framework or pydantic dependency.
 
 ## Architecture
 
