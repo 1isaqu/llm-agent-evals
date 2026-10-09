@@ -241,6 +241,7 @@ The tests use small inline fixtures with invented values. SQL is executed on in-
 HTTP adapters are also driven end to end against a throwaway fake provider on `127.0.0.1`. Nothing
 needs a key or a database. CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs the same
 commands with the mock model only, on Python 3.11 to 3.14.
+Development and the local test runs used Python 3.14 on Windows.
 
 ## Project layout
 
