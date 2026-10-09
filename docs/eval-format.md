@@ -57,9 +57,11 @@ correct. A real model is measured only in live mode.
 | `config` | no | `BusinessConfig` overrides. |
 | `expect` | yes | Expectations. Every key is optional. |
 
-The loader is strict. An unknown key anywhere (`tools_forbiden`, `max_step`) is a `ScenarioError`
-that names the file, because a typo would otherwise switch a check off and leave the scenario
-passing for the wrong reason.
+The loader is strict. An unknown key in the scenario, `session`, `limits`, `config`, `expect` or
+`expect.answer` (`tools_forbiden`, `max_step`) is a `ScenarioError` that names the file. So is a
+dataset section that is not a `DataSource` method name (`agent_rolup`), because a typo would
+otherwise switch a check off or fail only when the scenario runs. `eval` prints the message and
+exits with code 2.
 
 ### Datasets
 

@@ -57,6 +57,18 @@ def test_eval_exits_nonzero_when_a_scenario_misses_its_expectation(capsys, tmp_p
     assert code == 1 and "| S01 | factual | golden | FAIL |" in out
 
 
+def test_eval_reports_a_misspelled_dataset_section_as_an_error_not_a_traceback(capsys, tmp_path):
+    scenarios = tmp_path / "scenarios"
+    shutil.copytree(ROOT / "scenarios", scenarios)
+    broken = next(scenarios.glob("s01_*.json"))
+    body = json.loads(broken.read_text(encoding="utf-8"))
+    body["dataset_patch"] = {"auto": {"agent_rolup": []}}
+    broken.write_text(json.dumps(body), encoding="utf-8")
+    code, out, err = run(capsys, "eval", "--scenarios", str(scenarios))
+    assert code == 2 and out == ""
+    assert broken.name in err and "agent_rolup" in err
+
+
 def test_eval_gates_on_minimums_and_reports_them_on_stderr(capsys):
     code, _, err = run(
         capsys, "eval", "--scenarios", str(ROOT / "scenarios"), "--min", "pass_rate=101"
