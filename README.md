@@ -234,7 +234,7 @@ src/llm_agent_evals/
   llm/         neutral types, scripted and rule-based mocks, OpenAI-style and Anthropic adapters
   evals/       scenario format, assertion layers, runner, metrics, reports
   ledger/      model, verifier, renderers
-scenarios/     32 golden scenarios (S), 12 self-tests (X), datasets/basic.json (invented rows)
+scenarios/     32 golden scenarios (S), 13 self-tests (X), datasets/basic.json (invented rows)
 ledger/        entries.json, the source of docs/reliability-ledger.md
 docs/          architecture, data-contract, decisions, eval-format, ledger, glossary,
                metric-registry.default.json, reliability-ledger.md and .html

@@ -1,0 +1,53 @@
+{
+  "id": "X13",
+  "title": "Invented number only in a highlight value",
+  "category": "self_test",
+  "question": "How risky is Portfolio A-02?",
+  "session": {
+    "product_line": "auto",
+    "date_from": "2026-03-01",
+    "date_to": "2026-03-18"
+  },
+  "now": "2026-03-18T15:30:00",
+  "dataset": "datasets/basic.json",
+  "script": [
+    {
+      "tool_call": {
+        "name": "get_portfolio_metrics",
+        "args": {
+          "portfolio_name": "Portfolio A-02"
+        }
+      }
+    },
+    {
+      "final": {
+        "text": "**Portfolio A-02** is at **medium** risk, with a composite risk of **25.0%**.",
+        "highlights": [
+          {
+            "type": "metric",
+            "label": "Composite risk",
+            "value": "31.8%"
+          }
+        ],
+        "suggested_actions": [],
+        "data_sources": [
+          "get_portfolio_metrics"
+        ],
+        "confidence": "high"
+      }
+    }
+  ],
+  "expect": {
+    "should_pass": false,
+    "expect_violations": [
+      "faithfulness:untraceable_number"
+    ],
+    "tools_any_of": [
+      "get_portfolio_metrics"
+    ],
+    "answer": {
+      "traceable_numbers": true
+    }
+  },
+  "notes": "Self-test: the answer text is faithful and only the highlight value is invented. The harness must report the declared violation."
+}

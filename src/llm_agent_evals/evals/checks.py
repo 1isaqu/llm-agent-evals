@@ -241,7 +241,9 @@ def _traceable(value: float, allowed: list[float]) -> bool:
     return any(_is_close(value, a + b) for a in terms for b in terms)
 
 
-def check_faithfulness(text: str, allowed: list[float]) -> list[Violation]:
+def check_faithfulness(
+    text: str, allowed: list[float], where: str = "the answer text"
+) -> list[Violation]:
     """Every number of at least `MIN_CHECKED_VALUE` must match a seen number (or a sum of two).
 
     Smaller numbers are skipped: they are mostly ordinals, status ids and counts quoted in
@@ -255,8 +257,8 @@ def check_faithfulness(text: str, allowed: list[float]) -> list[Violation]:
             Violation(
                 "faithfulness",
                 "untraceable_number",
-                f"{token!r} does not match any number in the tool results",
-                {"token": token, "value": value},
+                f"{token!r} in {where} does not match any number in the tool results",
+                {"token": token, "value": value, "where": where},
             )
         )
     return out
@@ -406,6 +408,16 @@ def check_outcome(result: AgentResult, expect: Expectations) -> list[Violation]:
     return out
 
 
+def _check_highlight_values(response: Mapping[str, Any], allowed: list[float]) -> list[Violation]:
+    """Highlight values are shown as headline figures, so they get the same numeric check."""
+    out: list[Violation] = []
+    for index, highlight in enumerate(response.get("highlights", [])):
+        value = highlight.get("value")
+        if isinstance(value, str):
+            out.extend(check_faithfulness(value, allowed, f"highlights[{index}].value"))
+    return out
+
+
 def evaluate(
     scenario: Scenario, result: AgentResult, registered_tools: Iterable[str]
 ) -> list[Violation]:
@@ -422,7 +434,9 @@ def evaluate(
         *check_outcome(result, expect),
     ]
     if expect.answer.get("traceable_numbers"):
-        violations.extend(check_faithfulness(text, allowed_numbers(result.calls, context)))
+        allowed = allowed_numbers(result.calls, context)
+        violations.extend(check_faithfulness(text, allowed))
+        violations.extend(_check_highlight_values(result.response, allowed))
     phrases = expect.answer.get("false_unavailability_phrases")
     if phrases:
         violations.extend(check_false_unavailability(text, result.calls, phrases))
