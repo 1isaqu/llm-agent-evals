@@ -124,7 +124,7 @@ real number on the wrong label, which `forbidden` wording and hand-computed grou
 The two-number sum is limited to large values because among a few dozen small counts almost any
 small number is the sum of two of them.
 
-## 16. Personal data never enters the contract, and a guard checks anyway
+## 16. Customer identifiers never enter the contract, and a guard checks anyway
 
 The data contract has no customer name, document, phone or e-mail field. Agent display names and
 logins are part of it and are sent to the model, because per-agent answers and rankings need them.
