@@ -7,13 +7,13 @@ are grouped in three tiers.
 ## Tier 0: seeded synthetic data
 
 All of it is invented, and every constant in it is arbitrary. Nothing was fitted, tuned or
-compared against a real operation. The values were picked so that each business rule has
-something to act on, not to look like any particular portfolio.
+compared against a real operation. The values give each business rule something to act on and
+do not imitate any portfolio.
 
 | Where | What it holds | Notes |
 |---|---|---|
-| `src/llm_agent_evals/sources/demo.py` | In-memory SQLite databases for two product lines: 36 and 24 agreements, six agents per line, a catalogue of six contact results, about a dozen days of contact events. | There is no random number generator. Every row comes from arithmetic on the row index, so each run builds the same database. The fixed clock is 2026-03-18 15:30. Counts, amounts, hours, the status cycle and the two re-written installments are arbitrary. |
-| `scenarios/datasets/basic.json` | Hand-written rollup rows for the evaluation scenarios, one dataset for all of them. | Round numbers (for example 4000.0 and 8 agreements) so the ground truth in each scenario can be computed by hand. It is the only fixture file in the repository. |
+| [src/llm_agent_evals/sources/demo.py](../src/llm_agent_evals/sources/demo.py) | In-memory SQLite databases for two product lines: 36 and 24 agreements, six agents per line, a catalogue of six contact results, about a dozen days of contact events. | There is no random number generator. Every row comes from arithmetic on the row index, so each run builds the same database. The fixed clock is 2026-03-18 15:30. Counts, amounts, hours, the status cycle and the two re-written installments are arbitrary. |
+| [scenarios/datasets/basic.json](../scenarios/datasets/basic.json) | Hand-written rollup rows for the evaluation scenarios, one dataset for all of them. | Round numbers (for example 4000.0 and 8 agreements) so the ground truth in each scenario can be computed by hand. It is the only fixture file in the repository. |
 | `tests/` | Small rows written inline in the test code. | Invented values, a handful per test. No fixture files. |
 | `BusinessConfig` and `RunGuard` defaults | Status ids, risk cut-offs, grace days, window limits, trend band, pace hours, guard ceilings. | Placeholders. Calibrate them on your own data before trusting a reported number. |
 
@@ -27,8 +27,9 @@ no remote host; the only outside call is to a model provider that you configure 
 ## Tier 2: your own data
 
 You connect it at run time and never commit it. Map your database to the eight tables in
-`docs/data-contract.md` (views are fine), or implement the `DataSource` protocol yourself. The
-SQL Server connection helper reads host, user and password from environment variables only.
+[docs/data-contract.md](data-contract.md) (views are fine), or implement the `DataSource` protocol
+yourself. The SQL Server connection helper reads host, user and password from environment
+variables only.
 `.gitignore` excludes `.env`, `data/` and the usual data and model file extensions, so a local
 export does not end up in a commit by accident.
 
@@ -36,8 +37,11 @@ export does not end up in a commit by accident.
 
 - Real figures, reports or audit numbers. The examples in the system prompt, the tests and the
   documents are invented and internally consistent.
-- Lookup tables, thresholds or models derived from real data. The pace forecast is a plain
-  average of recent hours, with a protocol (`PaceProvider`) where a fitted model can be plugged
-  in by whoever owns the data.
-- Customer identifiers. The contract has none, and an egress guard checks every tool result
-  before a model sees it. Agent names and logins are in the contract and are invented here.
+- Lookup tables, thresholds or models derived from real data. The pace baseline is the mean
+  hourly profile of recent past days that have rows, with a protocol (`PaceProvider`) where a
+  fitted model can be plugged in by whoever owns the data.
+- Customer identifiers. The contract has no customer name, document, phone or e-mail field. The
+  two columns that could link a row to a customer once real data is mapped are
+  `contact_events.debt_owner_id` and `debts.contract_no`, and no query reads either. An egress
+  guard checks every tool result before a model sees it. Agent names and logins are in the
+  contract and are invented here.

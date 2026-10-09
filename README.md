@@ -19,8 +19,8 @@ result, shares a cache and has a circuit breaker. Time, sleep, cache and breaker
 tests need no patching.
 
 A tool is one object that holds its schema and its handler. The schema the model sees also
-validates its arguments, and the tool list in the prompt is generated from the registry. Model
-mistakes come back as structured errors with a hint, not as stack traces.
+validates its arguments, and the tool list in the prompt is generated from the registry. An
+unknown tool or a bad argument from the model comes back as a structured error with a hint.
 
 `BusinessConfig` drives the SQL, the analytics, the system prompt and the metric registry, so the
 four cannot disagree. Some of the rules it carries: composite risk is the maximum axis and never
@@ -29,17 +29,20 @@ from two product lines are added before any ratio is computed.
 
 The evaluation harness has eight assertion layers: tool selection, SQL channel, parameters,
 numeric faithfulness, ground truth, answer wording, false unavailability and outcome. Violations
-are structured (`layer:code`) and scores come from the layer, not from searching a message.
-Self-test scenarios script a mistake on purpose and declare the violation the harness must report,
-which shows that each layer can fail.
+are structured (`layer:code`) and scores are counted per layer, so rewording a violation message
+cannot change a score. Self-test scenarios script a mistake on purpose and declare the violation the
+harness must report, which shows that each layer can fail.
 
-The reliability ledger is data. A verifier resolves every scenario and test it cites, and a test
-fails when the generated documents drift.
+The reliability ledger is a data file, [ledger/entries.json](ledger/entries.json), and its
+documents in `docs/` are generated from it. A verifier resolves every scenario and test it cites,
+and a test fails when the generated documents drift.
 
-The data contract holds no customer identifier, and an egress guard inspects every tool result
-before a model sees it. Agent names and logins do reach the model, because per-agent answers need
-them. At runtime the package uses only the standard library: there is no provider SDK, web
-framework or pydantic dependency.
+The data contract has no customer name, document, phone or e-mail field. The two columns that
+could link a row to a customer once real data is mapped are `contact_events.debt_owner_id` and
+`debts.contract_no`, and no query reads either. An egress guard inspects every tool result before
+a model sees it. Agent names and logins do reach the model, because per-agent answers need them. At
+runtime the package uses only the standard library: there is no provider SDK, web framework or
+pydantic dependency.
 
 ## Architecture
 
@@ -66,7 +69,8 @@ framework or pydantic dependency.
  evals/ scenarios -> runner -> checks -> metrics -> report       ledger/ entries -> verify -> render
 ```
 
-More detail in `docs/architecture.md`; the reasons behind the choices in `docs/decisions.md`.
+More detail in [docs/architecture.md](docs/architecture.md); the reasons behind the choices in
+[docs/decisions.md](docs/decisions.md).
 
 ## Quick start
 
@@ -94,8 +98,8 @@ confidence: high
 tools: filter_portfolios_by_risk
 ```
 
-The mock is a keyword router that repeats values from the tool result. It is not a language
-model. Its job is to let the pipeline run end to end anywhere.
+The mock is a keyword router with no language model behind it: it picks a tool from fixed keyword
+rules and repeats values from the result, so the pipeline runs end to end on any machine.
 
 The HTTP service (plain WSGI, bind it to localhost):
 
@@ -106,12 +110,19 @@ curl -s -X POST http://127.0.0.1:8000/chat -H "Content-Type: application/json" \
        "product_line":"auto","date_from":"2026-03-01","date_to":"2026-03-18"}'
 ```
 
+The same request from PowerShell:
+
+```powershell
+$body = '{"messages":[{"role":"user","content":"Which portfolios are at high risk?"}],"product_line":"auto","date_from":"2026-03-01","date_to":"2026-03-18"}'
+Invoke-RestMethod -Method Post -Uri http://127.0.0.1:8000/chat -ContentType "application/json" -Body $body | ConvertTo-Json -Depth 5
+```
+
 Other commands: `llm-agent-evals tools` (the 15 tools), `prompt` (the rendered system prompt),
 `metrics` (the metric registry), `ledger verify` and `ledger generate`.
 
 ## Using a real model
 
-Set environment variables. `LLM_API_KEY` is the only place the key is read.
+Set environment variables. The key is read only from `LLM_API_KEY`.
 
 ```bash
 export LLM_PROVIDER=anthropic          # or openai_compatible
@@ -119,6 +130,14 @@ export LLM_API_KEY=...                 # never commit it
 export LLM_MODEL=...                   # the model id you want to use
 llm-agent-evals ask "How is Portfolio A-01 doing?"
 llm-agent-evals eval --live --min pass_rate=80
+```
+
+In PowerShell, set the variables with `$env:` and run the same two commands:
+
+```powershell
+$env:LLM_PROVIDER = "anthropic"        # or openai_compatible
+$env:LLM_API_KEY = "..."               # never commit it
+$env:LLM_MODEL = "..."                 # the model id you want to use
 ```
 
 `openai_compatible` works with any server that speaks the chat-completions protocol (set
@@ -131,8 +150,9 @@ skips the self-tests and costs real tokens.
 The agent sees nine rollup methods, and `sources/sql.py` implements them over eight neutral tables.
 Either map your database to those tables (views are fine) or implement the `DataSource` protocol
 yourself. The tables, the columns, the status sets and the row shapes are in
-`docs/data-contract.md`. Then calibrate `BusinessConfig` on your own data: every threshold in it
-is invented. `docs/data-sources.md` lists what data the repository contains and where yours fits.
+[docs/data-contract.md](docs/data-contract.md). Then calibrate `BusinessConfig` on your own data:
+every threshold in it is invented. [docs/data-sources.md](docs/data-sources.md) lists what data the
+repository contains and where yours fits.
 
 ```python
 import os
@@ -164,7 +184,8 @@ not against a live server. For another database, implement `DataSource` and skip
 
 ## Configuration
 
-Environment variables (see `.env.example`; the package does not read `.env` files by itself):
+Environment variables (see [.env.example](.env.example); the package does not read `.env` files
+by itself):
 
 | Variable | Default | Meaning |
 |---|---|---|
@@ -197,7 +218,7 @@ Environment variables (see `.env.example`; the package does not read `.env` file
 | `excluded_agent_patterns` | `system%`, `test%` | SQL `LIKE` patterns on the agent login, applied in SQL |
 | `first_installment_no` | `0` | The installment number of the down payment |
 | `max_window_days` | `93` | Longest window a single tool call may span |
-| `plan_lookback_days`, `plan_late_remaining` | `150`, `3` | Plan-stage base and the "late" threshold |
+| `plan_lookback_days`, `plan_early_max_paid`, `plan_late_remaining` | `150`, `2`, `3` | Plan-stage base, the "early" threshold (installments paid) and the "late" threshold (installments left) |
 | `crosstab_limit`, `stage_portfolio_limit` | `12`, `8` | Rows returned by those views |
 | `trend_flat_band_pct` | `8.0` | A series whose second half differs from its first half by less than this many percent reads as flat |
 | `pace_first_hour`, `pace_last_hour`, `pace_min_history_days` | `9`, `18`, `3` | Daily-pace window |
@@ -212,15 +233,14 @@ python -m pytest                                  # unit and integration tests, 
 llm-agent-evals eval --min pass_rate=100          # the scenario set
 llm-agent-evals ledger verify                     # every ledger reference resolves
 llm-agent-evals metrics --check docs/metric-registry.default.json
-ruff check . && ruff format --check .
+ruff check .
+ruff format --check .
 ```
 
 The tests use small inline fixtures with invented values. SQL is executed on in-memory SQLite. The
 HTTP adapters are also driven end to end against a throwaway fake provider on `127.0.0.1`. Nothing
-needs a key or a database. CI (`.github/workflows/ci.yml`) runs the same commands with the mock
-model only.
-
-The suite was run locally on Python 3.14. CI runs it on 3.11 to 3.14.
+needs a key or a database. CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs the same
+commands with the mock model only, on Python 3.11 to 3.14.
 
 ## Project layout
 
@@ -244,34 +264,38 @@ tests/         pytest suite
 
 ## Key design decisions
 
-Short list; the full reasoning is in `docs/decisions.md`.
+Short list; the full reasoning is in [docs/decisions.md](docs/decisions.md).
 
 - Guards are enforced inside `dispatch`, because a model can return a batch of calls in one turn.
-- Model mistakes are structured return values (`error_type`, `retryable`, `hint`), not exceptions.
+- A mistake the model can cause is a structured return value with `error_type`, `retryable` and
+  `hint`, which the model reads on its next turn.
 - Analytics are pure functions over rollup rows, so every scenario runs the real analytics with
   canned rows and only the SQL needs a database to be exercised.
 - Business filters sit inside the de-duplication subquery, before the row ranking.
-- A numeric faithfulness check is a safety net: it catches an invented number, not a wrong label.
-  Hand-computed ground truth and forbidden wording cover that gap per scenario.
+- The numeric faithfulness check catches an invented number but cannot tell when a real number
+  sits on the wrong label. Hand-computed ground truth and forbidden wording cover that gap per
+  scenario.
 - The ledger and the metric registry snapshot are generated, and tests fail on drift.
 
 ## Limitations
 
-No live model provider and no live SQL Server was used. The two model adapters and the T-SQL are
+No live model provider and no live SQL Server were used. The two model adapters and the T-SQL are
 verified through injected fakes and generated text, so expect to adjust them on first contact.
-Scripted scenarios measure the machinery, not a model. A real model is measured only by
-`eval --live`, which has never been run here, and there is no judge layer for tone or
-completeness. The rule-based mock produces terse answers meant to prove the plumbing, not to read
-well.
+Scripted scenarios exercise the loop, the guards and the analytics. Only `eval --live` measures a
+real model, and it has never been run here. There is no judge layer for tone or completeness. The
+rule-based mock gives terse answers; it exists to drive the pipeline.
 
 Every business threshold is invented. The risk cut-offs, grace period and window limit show where
 calibrated values go, and the agent's statements about risk level mean nothing until they are
-calibrated on your own data. The guard ceilings are engineering defaults, not tuned values. The
-daily pace is a baseline, not a forecast model: the mean hourly profile of recent days that have
-rows, so a working day with no agreements is left out and every active weekday shares one
-profile. The `PaceProvider` protocol is where one would plug in.
+calibrated on your own data. The guard ceilings are untuned engineering defaults.
 
-The egress guard is a safety net. It cannot recognise a name in free text, it can redact a long id
+The daily pace is a simple baseline: the mean hourly profile of recent past days that have rows. A
+day with no rows in the pace hours drops out of the history. That usually removes weekends and
+holidays, and it also removes a working day that produced nothing, so after quiet days the expected
+total reads slightly high. Every day that has rows, weekend or not, feeds the same profile. A
+forecast model would plug in through the `PaceProvider` protocol.
+
+The egress guard is a safety net: it cannot recognise a name in free text, it can redact a long id
 or a very large whole-number total by mistake, and it does not inspect the user's own message. The
 HTTP layer has no authentication, rate limiting or TLS, so bind it to localhost or put it behind
 something that provides them. The cache and the circuit breaker are per process. The tool
@@ -285,4 +309,4 @@ real data, and every name, number and portfolio in it is invented.
 
 ## License
 
-MIT, see `LICENSE`.
+MIT, see [LICENSE](LICENSE).

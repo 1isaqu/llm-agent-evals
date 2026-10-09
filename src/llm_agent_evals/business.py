@@ -56,6 +56,7 @@ class BusinessConfig:
 
     max_window_days: int = 93
     plan_lookback_days: int = 150
+    plan_early_max_paid: int = 2
     plan_late_remaining: int = 3
 
     crosstab_limit: int = 12
@@ -71,7 +72,13 @@ class BusinessConfig:
         self._validate_status_sets()
         if not 0 <= self.risk_low_max < self.risk_medium_max:
             raise ConfigError("risk_low_max must be >= 0 and smaller than risk_medium_max")
-        for name in ("grace_days", "max_window_days", "plan_lookback_days", "plan_late_remaining"):
+        for name in (
+            "grace_days",
+            "max_window_days",
+            "plan_lookback_days",
+            "plan_early_max_paid",
+            "plan_late_remaining",
+        ):
             if getattr(self, name) < 0:
                 raise ConfigError(f"{name} must not be negative")
         if not 0 <= self.trend_flat_band_pct < 100:

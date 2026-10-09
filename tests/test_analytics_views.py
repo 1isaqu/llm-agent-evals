@@ -23,6 +23,7 @@ from llm_agent_evals.analytics.pace import BaselinePace
 from llm_agent_evals.analytics.stages import STAGES, stage_summary
 from llm_agent_evals.business import BusinessConfig
 from llm_agent_evals.errors import DataSourceError
+from llm_agent_evals.metrics import MetricRegistry
 from llm_agent_evals.sources.fixture import FixtureSource
 from tests.helpers import WINDOW
 
@@ -258,6 +259,22 @@ def test_days_without_rows_are_not_part_of_the_baseline():
     )
     assert result["history_days"] == 3
     assert result["expected_total"] == 17.0  # not 17 * 3 / 9 calendar days
+
+
+def test_a_weekend_day_with_rows_is_part_of_the_baseline():
+    days = ("2026-03-13", "2026-03-14", "2026-03-16")  # Friday, Saturday, Monday
+    rows = [{"day": d, "hour": h, "qty": q} for d in days for h, q in PROFILE.items()]
+    result = BaselinePace().forecast(
+        FixtureSource({"hourly_counts": rows}), datetime(2026, 3, 18, 15, 30), CONFIG
+    )
+    assert result["history_days"] == 3
+
+
+def test_the_pace_method_and_the_metric_registry_describe_the_baseline_alike():
+    result = BaselinePace().forecast(hourly_source(), datetime(2026, 3, 18, 15, 30), CONFIG)
+    phrase = "mean hourly profile of recent past days that have rows"
+    assert phrase in result["method"]
+    assert phrase in MetricRegistry(CONFIG).to_dict()["kpis"]["daily_pace"]["formula"]
 
 
 def test_the_current_hour_is_in_progress_and_not_part_of_the_comparison():

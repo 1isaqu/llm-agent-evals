@@ -1,7 +1,7 @@
 """Invented demo data in throw-away in-memory SQLite databases.
 
-Nothing here is real, and every constant in this module is arbitrary: it was picked so a
-rule has something to act on, not to resemble any operation. Every row is produced by
+Nothing here is real, and every constant in this module is arbitrary: it gives a rule
+something to act on and does not imitate any operation. Every row is produced by
 arithmetic on the row index, so the databases are identical on every run and small enough
 to reason about by hand:
 

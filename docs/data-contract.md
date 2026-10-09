@@ -34,7 +34,7 @@ schema (`sources/schema.py`); on SQL Server any compatible type works (`datetime
 The table can hold several rows for the same `(agreement_id, portfolio_id, installment_no)`,
 for example when a system re-writes an installment. Every query keeps only the latest one (highest
 `issued_at`, then highest `record_id`). The window and status filters are applied *before* that
-ranking, inside the derived table. See `docs/decisions.md` for why.
+ranking, inside the derived table. See [docs/decisions.md](decisions.md) for why.
 
 ### `agreement_debts`: links agreements to debts
 
@@ -184,7 +184,8 @@ Definitions every implementation must respect:
   `paid_at <= due_at + grace_days`.
 - `plan_stage_rollup` covers approved agreements issued in the `plan_lookback_days` before `end`.
   An installment with `paid_amount > 0` is paid. Stage is `settled` when all are paid, `early`
-  when at most one is, `late` when `plan_late_remaining` or fewer are left, else `middle`.
+  when `plan_early_max_paid` or fewer are, `late` when `plan_late_remaining` or fewer are left,
+  else `middle`. The first rule that matches wins, in that order.
 
 ## Using SQL Server
 

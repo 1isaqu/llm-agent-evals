@@ -264,15 +264,9 @@ def test_agent_rollup_merges_the_four_aggregates_into_one_row_per_agent():
 # -- stages, slips, drill-downs, hours ------------------------------------------------
 
 
-def test_plan_stage_follows_payment_progress():
+def plan_db(plans):
+    """One agreement per entry, `plans` maps agreement id to (installments, paid)."""
     db = Db()
-    plans = {
-        1: (3, 0),
-        2: (3, 1),
-        3: (4, 2),
-        4: (7, 3),
-        5: (2, 2),
-    }  # agreement: (installments, paid)
     for agreement, (total, paid) in plans.items():
         for installment in range(total):
             db.agreement(
@@ -282,13 +276,37 @@ def test_plan_stage_follows_payment_progress():
                 paid=10.0 if installment < paid else None,
             )
         db.label(agreement, 1, agreement, "P-1")
+    return db
+
+
+def test_plan_stage_follows_payment_progress():
+    db = plan_db({1: (3, 0), 2: (4, 2), 3: (5, 3), 4: (7, 3), 5: (2, 2)})
     stages = {r["stage"]: r for r in db.source().plan_stage_rollup(date(2026, 3, 18))}
-    assert stages["early"]["qty"] == 2  # 0 and 1 paid
-    assert stages["late"]["qty"] == 1  # 2 left of 4 (<= plan_late_remaining)
+    assert stages["early"]["qty"] == 2  # 0 and 2 paid (<= plan_early_max_paid)
+    assert stages["late"]["qty"] == 1  # 2 left of 5 (<= plan_late_remaining)
     assert stages["middle"]["qty"] == 1  # 4 left of 7
     assert stages["settled"]["qty"] == 1
     assert stages["settled"]["open_amount"] == 0.0
     assert stages["early"]["open_amount"] == 30.0 + 20.0
+
+
+def test_the_early_stage_boundary_is_a_config_parameter():
+    db = plan_db({1: (3, 0), 2: (3, 1), 3: (6, 2)})
+    end = date(2026, 3, 18)
+    default = {r["stage"]: r["qty"] for r in db.source().plan_stage_rollup(end)}
+    assert default == {"early": 3}
+    strict = db.source(BusinessConfig(plan_early_max_paid=0)).plan_stage_rollup(end)
+    assert {r["stage"]: r["qty"] for r in strict} == {"early": 1, "late": 1, "middle": 1}
+
+
+def test_early_is_checked_before_late():
+    # Two of four paid also leaves only two to pay, so both rules match and early wins.
+    db = plan_db({1: (4, 2)})
+    end = date(2026, 3, 18)
+    default = db.source().plan_stage_rollup(end)
+    assert {r["stage"]: r["qty"] for r in default} == {"early": 1}
+    one = db.source(BusinessConfig(plan_early_max_paid=1)).plan_stage_rollup(end)
+    assert {r["stage"]: r["qty"] for r in one} == {"late": 1}
 
 
 def test_slip_rollup_by_issue_day_and_by_portfolio_on_due_date():

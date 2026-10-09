@@ -76,7 +76,7 @@ A dataset file maps a product line to *sections*. A section is named after a `Da
 Rows with a `day` key are also filtered to the requested window. A section can be
 `{"$fail": "message"}` to make the call raise a transient error. A method with no section raises
 `DataUnavailable`, so a scenario states exactly which data it supplies. Row keys are in
-`docs/data-contract.md`.
+[docs/data-contract.md](data-contract.md).
 
 ### Script turns
 
