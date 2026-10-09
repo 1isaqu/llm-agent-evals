@@ -2,8 +2,8 @@
 
 `PaceProvider` is the extension point. A real deployment can plug in a trained
 forecasting model behind it; this package ships a transparent baseline instead of any
-fitted artifact. The baseline treats the average hourly profile of recent history as
-the expectation:
+fitted artifact. The baseline takes the mean hourly profile of recent past days that
+have rows as the expectation:
 
     expected(hour)      mean agreements generated in that hour on past days
     expected_to_date    sum of expected(hour) over the hours already finished today
@@ -14,11 +14,11 @@ The projection is withheld while the elapsed share of the expected day is below
 `min_share`, because dividing by a tiny share amplifies noise.
 
 The mean runs over past days that have at least one row in the pace hours. A day with no
-rows is not in the history, which keeps weekends and holidays out and makes the baseline an
-average over active days. It also drops a working day that produced nothing, so after quiet
-days the expected total reads slightly high, and every active weekday shares one profile.
-The source returns no rows for an empty hour, so it cannot tell a quiet day from a missing
-one, and the baseline does not try to.
+rows in those hours is not in the history. Weekends and holidays usually have none and drop
+out, but so does a working day that produced nothing, so after quiet days the expected total
+reads slightly high. There is no weekday filter: every day that has rows, weekend or not,
+feeds one shared profile. The source returns no rows for an empty hour, so it cannot tell a
+quiet day from a missing one, and the baseline does not try to.
 
 "Today" and the current hour come from the clock given to the agent, so results are
 reproducible in tests.
@@ -101,8 +101,8 @@ class BaselinePace:
                 for h in hours
             ],
             "method": (
-                "baseline: mean hourly profile of recent history; projection = actual to date "
-                "divided by the expected share of the day already elapsed"
+                "baseline: mean hourly profile of recent past days that have rows; projection = "
+                "actual to date divided by the expected share of the day already elapsed"
             ),
         }
 

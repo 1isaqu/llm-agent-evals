@@ -267,9 +267,11 @@ well.
 Every business threshold is invented. The risk cut-offs, grace period and window limit show where
 calibrated values go, and the agent's statements about risk level mean nothing until they are
 calibrated on your own data. The guard ceilings are engineering defaults, not tuned values. The
-daily pace is a baseline, not a forecast model: the mean hourly profile of recent days that have
-rows, so a working day with no agreements is left out and every active weekday shares one
-profile. The `PaceProvider` protocol is where one would plug in.
+daily pace is a simple baseline: the mean hourly profile of recent past days that have rows. A day
+with no rows in the pace hours drops out of the history. Weekends and holidays usually have none,
+but neither does a working day that produced nothing, so after quiet days the expected total reads
+slightly high. Every day that has rows, weekend or not, feeds the same profile. A forecast model
+would plug in through the `PaceProvider` protocol.
 
 The egress guard is a safety net. It cannot recognise a name in free text, it can redact a long id
 or a very large whole-number total by mistake, and it does not inspect the user's own message. The
