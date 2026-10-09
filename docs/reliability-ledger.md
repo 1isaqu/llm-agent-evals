@@ -135,9 +135,9 @@ Status: 16 closed, 7 partially closed, 2 open, 6 landmines flagged.
 ### L-13: Personal data reaching an external model
 
 - Finding: A mapped column that happens to hold free text, or a join that pulls in a contact field, would send personal data to the model provider.
-- Fix: The data contract has no personal identifier. An egress guard inspects every tool result for denied field names and for email, phone and long-digit shapes, and either redacts them or withholds the whole result.
-- Gap: A person's name in free text cannot be recognised. Long digit runs such as internal ids can be redacted by mistake. The user's own message is not inspected.
-- Evidence: scenario S13 (ok); test tests/test_privacy.py::test_fields_that_commonly_hold_personal_data_are_redacted_by_name; test tests/test_agent.py::test_personal_looking_values_are_redacted_before_the_model_sees_them; test tests/test_agent.py::test_the_block_policy_withholds_the_whole_result
+- Fix: The data contract has no customer identifier. An egress guard inspects every tool result for denied field names and for email, phone and long-digit shapes, in strings and in whole numbers, and either redacts them or withholds the whole result.
+- Gap: A person's name in free text cannot be recognised. Long digit runs, and whole numbers of nine or more digits such as a very large total, can be redacted by mistake. Agent names and logins are not treated as personal data. The user's own message is not inspected.
+- Evidence: scenario S13 (ok); test tests/test_privacy.py::test_fields_that_commonly_hold_personal_data_are_redacted_by_name; test tests/test_privacy.py::test_a_long_integer_is_redacted_like_the_same_digits_in_a_string; test tests/test_agent.py::test_personal_looking_values_are_redacted_before_the_model_sees_them; test tests/test_agent.py::test_the_block_policy_withholds_the_whole_result
 
 ### L-20: Confidence that does not match the answer
 
@@ -199,7 +199,7 @@ Status: 16 closed, 7 partially closed, 2 open, 6 landmines flagged.
 ## Hard constraints
 
 - Data access is read-only. Every statement passes a single-SELECT guard before it runs.
-- The data contract has no personal identifiers.
+- The data contract has no customer identifiers. Agent names and logins are sent to the model.
 - The API key is read only from the environment and never appears in a message, log or representation.
 - Telemetry carries no tool arguments, no data and no text of the conversation.
 - Continuous integration uses the scripted and rule-based mock models only.

@@ -40,6 +40,19 @@ def test_a_long_digit_run_is_scrubbed_whichever_pattern_sees_it_first():
     assert result.findings
 
 
+def test_a_long_integer_is_redacted_like_the_same_digits_in_a_string():
+    result = EgressGuard().inspect({"customer_ref": 12345678901, "as_text": "12345678901"})
+    assert result.payload == {"customer_ref": REDACTED, "as_text": REDACTED}
+    assert ("$.customer_ref", "long_digits") in {(f.path, f.kind) for f in result.findings}
+    assert EgressGuard().inspect([[-12345678901]]).payload == [[REDACTED]]
+
+
+def test_counts_booleans_floats_and_short_integers_are_not_touched():
+    payload = {"qty": 12, "ok": True, "amount": 12345678901.0, "limit": 99999999}
+    result = EgressGuard().inspect(payload)
+    assert result.payload == payload and not result.findings
+
+
 def test_timestamps_and_ordinary_numbers_are_not_mistaken_for_phone_numbers():
     payload = {"issued_at": "2026-03-18 15:30:00", "note": "agreement 123456 for 1,500.25 total"}
     assert not EgressGuard().inspect(payload).findings

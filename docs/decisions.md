@@ -122,10 +122,12 @@ small number is the sum of two of them.
 
 ## 16. Personal data never enters the contract, and a guard checks anyway
 
-The data contract has no name, document, phone or e-mail field. If a user maps a free-text column
-by mistake, the egress guard inspects every tool result before a model can see it. It redacts (or
-blocks) denied field names and e-mail, phone-like and long-digit shapes. It is a safety net: it
-cannot recognise a name in free text.
+The data contract has no customer name, document, phone or e-mail field. Agent display names and
+logins are part of it and are sent to the model, because per-agent answers and rankings need them.
+If a user maps a free-text column by mistake, the egress guard inspects every tool result before a
+model can see it. It redacts (or blocks) denied field names, e-mail and phone-like shapes, and
+runs of nine or more digits, in strings and in whole numbers. It is a safety net: it cannot
+recognise a name in free text.
 
 ## 17. Telemetry carries no arguments, results or text
 

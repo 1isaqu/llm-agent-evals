@@ -37,9 +37,10 @@ which shows that each layer can fail.
 The reliability ledger is data. A verifier resolves every scenario and test it cites, and a test
 fails when the generated documents drift.
 
-The data contract has no personal identifier, and an egress guard inspects every tool result
-before a model sees it. At runtime the package uses only the standard library, with no provider
-SDK, web framework or pydantic.
+The data contract holds no customer identifier, and an egress guard inspects every tool result
+before a model sees it. Agent names and logins do reach the model, because per-agent answers need
+them. At runtime the package uses only the standard library: there is no provider SDK, web
+framework or pydantic dependency.
 
 ## Architecture
 
@@ -269,7 +270,7 @@ are calibrated on your own data. The daily pace is a baseline (the mean hourly p
 history), not a forecast model. The `PaceProvider` protocol is where one would plug in.
 
 The egress guard is a safety net. It cannot recognise a name in free text, it can redact a long id
-by mistake, and it does not inspect the user's own message. The HTTP layer has no authentication,
+or a very large whole-number total by mistake, and it does not inspect the user's own message. The HTTP layer has no authentication,
 rate limiting or TLS, so bind it to localhost or put it behind something that provides them. The
 cache and the circuit breaker are per process. The tool descriptions, the prompt and the answers
 are in English only. The `debts` table of the contract is not read by any query yet.
