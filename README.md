@@ -108,6 +108,13 @@ curl -s -X POST http://127.0.0.1:8000/chat -H "Content-Type: application/json" \
        "product_line":"auto","date_from":"2026-03-01","date_to":"2026-03-18"}'
 ```
 
+The same request from PowerShell:
+
+```powershell
+$body = '{"messages":[{"role":"user","content":"Which portfolios are at high risk?"}],"product_line":"auto","date_from":"2026-03-01","date_to":"2026-03-18"}'
+Invoke-RestMethod -Method Post -Uri http://127.0.0.1:8000/chat -ContentType "application/json" -Body $body | ConvertTo-Json -Depth 5
+```
+
 Other commands: `llm-agent-evals tools` (the 15 tools), `prompt` (the rendered system prompt),
 `metrics` (the metric registry), `ledger verify` and `ledger generate`.
 
@@ -121,6 +128,14 @@ export LLM_API_KEY=...                 # never commit it
 export LLM_MODEL=...                   # the model id you want to use
 llm-agent-evals ask "How is Portfolio A-01 doing?"
 llm-agent-evals eval --live --min pass_rate=80
+```
+
+In PowerShell, set the variables with `$env:` and run the same two commands:
+
+```powershell
+$env:LLM_PROVIDER = "anthropic"        # or openai_compatible
+$env:LLM_API_KEY = "..."               # never commit it
+$env:LLM_MODEL = "..."                 # the model id you want to use
 ```
 
 `openai_compatible` works with any server that speaks the chat-completions protocol (set
@@ -215,7 +230,8 @@ python -m pytest                                  # unit and integration tests, 
 llm-agent-evals eval --min pass_rate=100          # the scenario set
 llm-agent-evals ledger verify                     # every ledger reference resolves
 llm-agent-evals metrics --check docs/metric-registry.default.json
-ruff check . && ruff format --check .
+ruff check .
+ruff format --check .
 ```
 
 The tests use small inline fixtures with invented values. SQL is executed on in-memory SQLite. The
