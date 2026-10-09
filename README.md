@@ -3,39 +3,43 @@
 A tool-calling analytics agent together with the harness that evaluates it: golden scenarios, a
 metric registry with caveats, a reliability ledger, a deterministic mock model for CI, and a real
 model that plugs in through environment variables. The domain is debt collections (portfolios,
-agents, agreements, risk), but the part worth reading is how the agent is made testable and what
-is checked about it.
+agents, agreements, risk). Most of the code is there to make the agent testable and to check what
+it does.
 
 ## What it does and why it is interesting
 
-An executive asks a question in plain language. The agent calls read-only tools over rollup data,
-and answers with a small JSON contract (text, highlights, suggested actions, sources,
-confidence). The engineering is in making that loop checkable.
+An executive asks a question in plain language. The agent calls read-only tools over rollup data
+and answers with a small JSON contract (text, highlights, suggested actions, sources, confidence).
 
-- **One loop over a neutral message type.** Provider wire formats live in thin adapters. Message
-  alternation errors, compaction and the guards exist once.
-- **A run guard enforced inside dispatch.** Step and time ceilings, memoisation of identical calls,
-  spiral detection, per-tool disabling, one retry for transient source failures, a result cap, a
-  shared cache and a circuit breaker. Time, sleep, cache and breaker are injected, so tests need no
-  patching.
-- **Tool, schema and handler are one object.** The schema the model sees validates its arguments,
-  and the prompt's tool list is generated from the registry. Model mistakes come back as
-  structured errors with a hint, never as a stack trace.
-- **Business rules in one place, quoted everywhere.** `BusinessConfig` drives the SQL, the
-  analytics, the system prompt and the metric registry, so they cannot disagree. Examples of rules
-  that matter: composite risk is the maximum axis and never the sum; conversion, paid-per-CPC and
-  slip effectiveness are three metrics with three names; rows from two product lines are added
-  before any ratio is computed.
-- **An evaluation harness with eight assertion layers** (tool selection, SQL channel, parameters,
-  numeric faithfulness, ground truth, answer wording, false unavailability, outcome). Violations
-  are structured (`layer:code`) and scores come from the layer, never from searching a message.
-  Self-test scenarios script a mistake on purpose and declare the violation the harness must
-  report, which shows each layer can fail.
-- **A reliability ledger that is data.** A verifier resolves every scenario and test it cites, and
-  a test fails when the generated documents drift.
-- **A privacy net.** The data contract has no personal identifier, and an egress guard inspects
-  every tool result before a model sees it.
-- **Standard library only at runtime.** No SDKs, no web framework, no pydantic.
+The agent loop is written once, over a neutral message type. Provider wire formats live in thin
+adapters, so message alternation errors, compaction and the guards exist in one place. A run guard
+is enforced inside tool dispatch: it sets step and time ceilings, memoises identical calls, detects
+call spirals, can disable a single tool, retries a transient source failure once, caps the size of a
+result, shares a cache and has a circuit breaker. Time, sleep, cache and breaker are injected, so
+tests need no patching.
+
+A tool is one object that holds its schema and its handler. The schema the model sees also
+validates its arguments, and the tool list in the prompt is generated from the registry. Model
+mistakes come back as structured errors with a hint, not as stack traces.
+
+`BusinessConfig` drives the SQL, the analytics, the system prompt and the metric registry, so the
+four cannot disagree. Some of the rules it carries: composite risk is the maximum axis and never
+the sum; conversion, paid-per-CPC and slip effectiveness are three metrics with three names; rows
+from two product lines are added before any ratio is computed.
+
+The evaluation harness has eight assertion layers: tool selection, SQL channel, parameters,
+numeric faithfulness, ground truth, answer wording, false unavailability and outcome. Violations
+are structured (`layer:code`) and scores come from the layer, not from searching a message.
+Self-test scenarios script a mistake on purpose and declare the violation the harness must report,
+which shows that each layer can fail.
+
+The reliability ledger is data. A verifier resolves every scenario and test it cites, and a test
+fails when the generated documents drift.
+
+The data contract holds no customer identifier, and an egress guard inspects every tool result
+before a model sees it. Agent names and logins do reach the model, because per-agent answers need
+them. At runtime the package uses only the standard library: there is no provider SDK, web
+framework or pydantic dependency.
 
 ## Architecture
 
@@ -107,7 +111,7 @@ Other commands: `llm-agent-evals tools` (the 15 tools), `prompt` (the rendered s
 
 ## Using a real model
 
-Set environment variables; the key is read nowhere else.
+Set environment variables. `LLM_API_KEY` is the only place the key is read.
 
 ```bash
 export LLM_PROVIDER=anthropic          # or openai_compatible
@@ -119,7 +123,7 @@ llm-agent-evals eval --live --min pass_rate=80
 
 `openai_compatible` works with any server that speaks the chat-completions protocol (set
 `LLM_BASE_URL`). Both adapters are tested through an injected transport and against a local fake
-provider on `127.0.0.1`. **They have not been called against a live provider.** `eval --live`
+provider on `127.0.0.1`. They have not been called against a live provider. `eval --live`
 skips the self-tests and costs real tokens.
 
 ## Connect your own data
@@ -127,8 +131,8 @@ skips the self-tests and costs real tokens.
 The agent sees nine rollup methods, and `sources/sql.py` implements them over eight neutral tables.
 Either map your database to those tables (views are fine) or implement the `DataSource` protocol
 yourself. The tables, the columns, the status sets and the row shapes are in
-**`docs/data-contract.md`**. Then calibrate `BusinessConfig` on your own data: every threshold in
-it is invented.
+`docs/data-contract.md`. Then calibrate `BusinessConfig` on your own data: every threshold in it
+is invented. `docs/data-sources.md` lists what data the repository contains and where yours fits.
 
 ```python
 import os
@@ -139,7 +143,7 @@ from llm_agent_evals.session import Session, Window
 from llm_agent_evals.settings import LLMSettings
 from llm_agent_evals.sources import SQLSERVER, CachedSource, SqlDataSource, connect_sqlserver
 
-config = BusinessConfig(risk_low_max=10.0, risk_medium_max=30.0, grace_days=5)  # calibrate these
+config = BusinessConfig(risk_low_max=10.0, risk_medium_max=30.0, grace_days=7)  # calibrate these
 sources = {
     line: CachedSource(SqlDataSource(connect_sqlserver(os.environ, line), SQLSERVER, config))
     for line in ("auto", "consumer")
@@ -155,7 +159,7 @@ print(result.response["text"], result.response["confidence"])
 `pip install ".[sqlserver]"` adds `pyodbc`. `ask` and `serve` also accept `--backend sqlserver`,
 which opens one read-only connection per product line from the `DB_*` variables. The SQL Server
 path (T-SQL generation and the connection helper) is tested as text and with an injected driver,
-**not against a live server**. For another database, implement `DataSource` and skip
+not against a live server. For another database, implement `DataSource` and skip
 `sources/sql.py`.
 
 ## Configuration
@@ -183,7 +187,7 @@ Environment variables (see `.env.example`; the package does not read `.env` file
 | `DB_DRIVER`, `DB_HOST`, `DB_USER`, `DB_PASSWORD` | placeholders | SQL Server connection |
 | `DB_NAME`, `DB_NAME_AUTO`, `DB_NAME_CONSUMER` | placeholders | One database, or one per product line |
 
-`BusinessConfig` parameters, **all invented defaults to be calibrated on your own data**:
+`BusinessConfig` parameters. Every default is invented and has to be calibrated on your own data:
 
 | Parameter | Default | Meaning |
 |---|---|---|
@@ -193,9 +197,10 @@ Environment variables (see `.env.example`; the package does not read `.env` file
 | `excluded_agent_patterns` | `system%`, `test%` | SQL `LIKE` patterns on the agent login, applied in SQL |
 | `first_installment_no` | `0` | The installment number of the down payment |
 | `max_window_days` | `93` | Longest window a single tool call may span |
-| `plan_lookback_days`, `plan_late_remaining` | `150`, `2` | Plan-stage base and the "late" threshold |
+| `plan_lookback_days`, `plan_late_remaining` | `150`, `3` | Plan-stage base and the "late" threshold |
 | `crosstab_limit`, `stage_portfolio_limit` | `12`, `8` | Rows returned by those views |
-| `pace_first_hour`, `pace_last_hour`, `pace_min_history_days` | `8`, `19`, `3` | Daily-pace window |
+| `trend_flat_band_pct` | `8.0` | A series whose second half differs from its first half by less than this many percent reads as flat |
+| `pace_first_hour`, `pace_last_hour`, `pace_min_history_days` | `9`, `18`, `3` | Daily-pace window |
 
 Guard numbers (`RunGuard`: ceiling of 8 steps, 60 seconds, 1,500 tokens per result, a 12,000-token
 request budget) are engineering defaults you can pass to `Agent(guard=...)`.
@@ -215,8 +220,7 @@ HTTP adapters are also driven end to end against a throwaway fake provider on `1
 needs a key or a database. CI (`.github/workflows/ci.yml`) runs the same commands with the mock
 model only.
 
-The suite was run locally on Python 3.14 only. The CI matrix (3.11 to 3.14) is configured but has
-not run yet.
+The suite was run locally on Python 3.14. CI runs it on 3.11 to 3.14.
 
 ## Project layout
 
@@ -231,10 +235,10 @@ src/llm_agent_evals/
   llm/         neutral types, scripted and rule-based mocks, OpenAI-style and Anthropic adapters
   evals/       scenario format, assertion layers, runner, metrics, reports
   ledger/      model, verifier, renderers
-scenarios/     32 golden scenarios (S), 12 self-tests (X), datasets/basic.json (invented rows)
+scenarios/     32 golden scenarios (S), 13 self-tests (X), datasets/basic.json (invented rows)
 ledger/        entries.json, the source of docs/reliability-ledger.md
-docs/          architecture, data-contract, decisions, eval-format, ledger, glossary,
-               metric-registry.default.json, reliability-ledger.md and .html
+docs/          architecture, data-contract, data-sources, decisions, eval-format, ledger,
+               glossary, metric-registry.default.json, reliability-ledger.md and .html
 tests/         pytest suite
 ```
 
@@ -253,23 +257,26 @@ Short list; the full reasoning is in `docs/decisions.md`.
 
 ## Limitations
 
-- **No live provider and no live SQL Server was used.** The two model adapters and the T-SQL are
-  verified through injected fakes and generated text. Expect to adjust them on first contact.
-- **Scripted scenarios measure the machinery, not a model.** A real model is measured only by
-  `eval --live`, which has never been run here. There is no judge layer for tone or completeness.
-- **Every threshold is invented.** The risk cut-offs, grace period, window limit and guard budgets
-  show where calibrated values go. The agent's statements about risk level are meaningless until
-  they are calibrated on your own data.
-- **The daily pace is a baseline** (mean hourly profile of recent history), not a forecast model.
-  The `PaceProvider` protocol is where one would plug in.
-- **The egress guard is a safety net.** It cannot recognise a name in free text, it can redact a
-  long id by mistake, and it does not inspect the user's own message.
-- **The HTTP layer has no authentication, rate limiting or TLS.** Bind it to localhost or put it
-  behind something that provides them.
-- **The cache and the circuit breaker are per process.**
-- **English only.** The tool descriptions, the prompt and the answers are in English.
-- **The `debts` table of the contract is not read by any query yet.**
-- **Rule-based mock answers are terse.** They are meant to prove the plumbing, not to read well.
+No live model provider and no live SQL Server was used. The two model adapters and the T-SQL are
+verified through injected fakes and generated text, so expect to adjust them on first contact.
+Scripted scenarios measure the machinery, not a model. A real model is measured only by
+`eval --live`, which has never been run here, and there is no judge layer for tone or
+completeness. The rule-based mock produces terse answers meant to prove the plumbing, not to read
+well.
+
+Every business threshold is invented. The risk cut-offs, grace period and window limit show where
+calibrated values go, and the agent's statements about risk level mean nothing until they are
+calibrated on your own data. The guard ceilings are engineering defaults, not tuned values. The
+daily pace is a baseline, not a forecast model: the mean hourly profile of recent days that have
+rows, so a working day with no agreements is left out and every active weekday shares one
+profile. The `PaceProvider` protocol is where one would plug in.
+
+The egress guard is a safety net. It cannot recognise a name in free text, it can redact a long id
+or a very large whole-number total by mistake, and it does not inspect the user's own message. The
+HTTP layer has no authentication, rate limiting or TLS, so bind it to localhost or put it behind
+something that provides them. The cache and the circuit breaker are per process. The tool
+descriptions, the prompt and the answers are in English only. The `debts` table of the contract is
+not read by any query yet.
 
 ## Independence
 

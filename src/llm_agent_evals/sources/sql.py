@@ -12,6 +12,9 @@ Rules every query follows, because they are rules of the domain and not accident
   only the latest row per installment, and the business filters (window, status) sit
   *inside* the derived table, before `ROW_NUMBER()`. Filtering after the rank would let
   a re-write that falls outside the filter win the rank and hide the valid row;
+* agreements are counted as rows of that deduplicated first-installment table, which holds
+  one row per (agreement_id, portfolio_id). `COUNT(DISTINCT agreement_id)` would merge two
+  agreements that share an id across portfolios and fall in the same group;
 * aggregates live in separate queries instead of one coupled statement, so each can be
   checked on its own (agent rollups are merged in Python);
 * the portfolio label is resolved through `agreement_debts` on the *pair*
@@ -232,7 +235,7 @@ class ContractQueries:
         )
         excl = self._exclusions(p)
         sql = (
-            "SELECT s.portfolio_name, s.status_id, COUNT(DISTINCT s.agreement_id) AS qty, "
+            "SELECT s.portfolio_name, s.status_id, COUNT(*) AS qty, "
             "SUM(s.amount) AS amount FROM ("
             "SELECT d.agreement_id, d.status_id, d.amount, "
             f"{self._portfolio_expr('d')} AS portfolio_name {from_sql} WHERE 1 = 1{excl}) s "
@@ -252,7 +255,7 @@ class ContractQueries:
         excl = self._exclusions(p)
         portfolio_where = f" WHERE s.portfolio_name = {p.add(portfolio)}" if portfolio else ""
         sql = (
-            "SELECT s.day, s.status_id, COUNT(DISTINCT s.agreement_id) AS qty, "
+            "SELECT s.day, s.status_id, COUNT(*) AS qty, "
             "SUM(s.amount) AS amount FROM ("
             f"SELECT {day} AS day, d.status_id, d.agreement_id, d.amount{portfolio_col} "
             f"{from_sql} WHERE 1 = 1{excl}) s{portfolio_where} "
@@ -290,15 +293,13 @@ class ContractQueries:
         excl = self._exclusions(p)
         sql = (
             "SELECT u.login AS agent_id, u.display_name AS agent_name, "
-            f"COUNT(DISTINCT CASE WHEN d.status_id IN ({gen}) THEN d.agreement_id END) "
-            "AS agreement_count, "
+            f"SUM(CASE WHEN d.status_id IN ({gen}) THEN 1 ELSE 0 END) AS agreement_count, "
             f"SUM(CASE WHEN d.status_id IN ({gen}) THEN d.amount ELSE 0 END) "
             "AS first_installment_value, "
             f"SUM(CASE WHEN d.status_id IN ({gen}) THEN 1 ELSE 0 END) AS slips_issued, "
             f"SUM(CASE WHEN d.status_id IN ({gen}) AND d.paid_amount > 0 AND {within} "
             "THEN 1 ELSE 0 END) AS slips_paid, "
-            f"COUNT(DISTINCT CASE WHEN d.status_id IN ({exc}) THEN d.agreement_id END) "
-            "AS exception_count, "
+            f"SUM(CASE WHEN d.status_id IN ({exc}) THEN 1 ELSE 0 END) AS exception_count, "
             f"SUM(CASE WHEN d.status_id IN ({exc}) THEN d.amount ELSE 0 END) AS exception_value "
             f"{from_sql} WHERE 1 = 1{excl} GROUP BY u.login, u.display_name"
         )
@@ -340,7 +341,7 @@ class ContractQueries:
         excl = self._exclusions(p)
         sql = (
             "SELECT u.login AS agent_id, u.display_name AS agent_name, d.status_id, "
-            "COUNT(DISTINCT d.agreement_id) AS qty, SUM(d.amount) AS amount "
+            "COUNT(*) AS qty, SUM(d.amount) AS amount "
             f"{from_sql} WHERE 1 = 1{excl} "
             "GROUP BY u.login, u.display_name, d.status_id ORDER BY u.login, d.status_id"
         )
@@ -358,7 +359,7 @@ class ContractQueries:
         column = "s.portfolio_name" if by == "portfolio" else "s.agent_id"
         sql = (
             "SELECT s.agent_id, s.agent_name, s.portfolio_name, s.status_id, "
-            "COUNT(DISTINCT s.agreement_id) AS qty, SUM(s.amount) AS amount FROM ("
+            "COUNT(*) AS qty, SUM(s.amount) AS amount FROM ("
             "SELECT d.agreement_id, d.status_id, d.amount, u.login AS agent_id, "
             "u.display_name AS agent_name, "
             f"{self._portfolio_expr('d')} AS portfolio_name {from_sql} WHERE 1 = 1{excl}) s "
@@ -478,7 +479,7 @@ class ContractQueries:
         )
         excl = self._exclusions(p)
         sql = (
-            f"SELECT s.day, s.hour, COUNT(DISTINCT s.agreement_id) AS qty FROM ("
+            f"SELECT s.day, s.hour, COUNT(*) AS qty FROM ("
             f"SELECT {day} AS day, {hour} AS hour, d.agreement_id {from_sql} WHERE 1 = 1{excl}) s "
             "GROUP BY s.day, s.hour ORDER BY s.day, s.hour"
         )

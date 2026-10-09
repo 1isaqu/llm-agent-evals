@@ -5,9 +5,10 @@ A scenario is one JSON file (format documented in docs/eval-format.md):
     id, title, category, question | messages, session, now,
     dataset (path) [+ dataset_patch] | datasets (inline), script, expect, limits, config
 
-`load_scenario` is strict. An unknown key, a missing field or a malformed date is a
-`ScenarioError` that names the file, because a typo such as `tools_forbiden` would otherwise
-silently turn a check off and leave the scenario passing for the wrong reason.
+`load_scenario` is strict. An unknown key (also in `session`, `config` and the dataset
+sections), a missing field or a malformed date is a `ScenarioError` that names the file,
+because a typo such as `tools_forbiden` would otherwise silently turn a check off and leave
+the scenario passing for the wrong reason.
 """
 
 from __future__ import annotations
@@ -19,9 +20,11 @@ from datetime import date, datetime
 from pathlib import Path
 from typing import Any
 
-from llm_agent_evals.errors import AgentError
+from llm_agent_evals.business import BusinessConfig
+from llm_agent_evals.errors import AgentError, ConfigError
 from llm_agent_evals.llm.base import Message
 from llm_agent_evals.session import ALL_LINES, Session, Window
+from llm_agent_evals.sources.base import SOURCE_METHODS
 
 
 class ScenarioError(AgentError):
@@ -72,6 +75,7 @@ _ANSWER_KEYS = {
     "false_unavailability_phrases",
 }
 _LIMIT_KEYS = {"max_steps", "max_rounds", "wall_clock_seconds", "clock_tick_seconds"}
+_SESSION_KEYS = {"product_line", "date_from", "date_to"}
 _PARAM_KEYS = {"tool", "contains", "absent"}
 _TRUTH_KEYS = {"tool", "path", "equals", "tolerance_pct", "occurrence"}
 _TRUTH_REQUIRED = {"tool", "path", "equals"}
@@ -175,6 +179,9 @@ def _expectations(raw: Mapping[str, Any], path: Path) -> Expectations:
 
 
 def _session(raw: Mapping[str, Any], path: Path) -> Session:
+    if not isinstance(raw, Mapping):
+        raise ScenarioError(f"{path.name}: 'session' must be an object")
+    _check_keys(raw, _SESSION_KEYS, "session", path)
     try:
         window = Window(date.fromisoformat(raw["date_from"]), date.fromisoformat(raw["date_to"]))
         return Session(str(raw["product_line"]), window)
@@ -213,6 +220,27 @@ def _datasets(raw: Mapping[str, Any], path: Path) -> Mapping[str, Mapping[str, A
     return _apply_patch(loaded, raw.get("dataset_patch", {}))
 
 
+def _check_datasets(datasets: Mapping[str, Any], path: Path) -> None:
+    for line, sections in datasets.items():
+        if not isinstance(sections, Mapping):
+            raise ScenarioError(f"{path.name}: the dataset for line {line!r} must be an object")
+        unknown = sorted(set(sections) - set(SOURCE_METHODS))
+        if unknown:
+            raise ScenarioError(
+                f"{path.name}: unknown dataset section(s) for line {line!r}: {', '.join(unknown)}"
+            )
+
+
+def _config(raw: Any, path: Path) -> dict[str, Any]:
+    if not isinstance(raw, Mapping):
+        raise ScenarioError(f"{path.name}: 'config' must be an object")
+    try:
+        BusinessConfig.from_mapping(raw)
+    except (ConfigError, TypeError) as exc:
+        raise ScenarioError(f"{path.name}: invalid config: {exc}") from exc
+    return dict(raw)
+
+
 def parse_scenario(raw: Mapping[str, Any], path: Path) -> Scenario:
     """Validate a decoded scenario and build the `Scenario`."""
     _check_keys(raw, _TOP_KEYS, "scenario", path)
@@ -227,6 +255,7 @@ def parse_scenario(raw: Mapping[str, Any], path: Path) -> Scenario:
         raise ScenarioError(f"{path.name}: invalid 'now': {exc}") from exc
     session = _session(raw["session"], path)
     datasets = _datasets(raw, path)
+    _check_datasets(datasets, path)
     if session.product_line != ALL_LINES and session.product_line not in datasets:
         raise ScenarioError(f"{path.name}: dataset has no data for line {session.product_line!r}")
     return Scenario(
@@ -240,7 +269,7 @@ def parse_scenario(raw: Mapping[str, Any], path: Path) -> Scenario:
         script=tuple(raw["script"]),
         expect=_expectations(raw["expect"], path),
         limits=limits,
-        config=dict(raw.get("config", {})),
+        config=_config(raw.get("config", {}), path),
         path=str(path),
     )
 

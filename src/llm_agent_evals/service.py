@@ -63,7 +63,10 @@ def parse_messages(raw: Any) -> list[Message]:
         messages.append(Message(role=item["role"], content=content.strip()[:MAX_MESSAGE_CHARS]))
     if messages[-1].role != "user":
         raise RequestError("the last message must come from the user.")
-    return messages[-MAX_MESSAGES:]
+    kept = messages[-MAX_MESSAGES:]
+    # The last message is a user turn, so there is always one to start from. Some chat APIs
+    # reject a history that opens with an assistant turn.
+    return kept[next(i for i, m in enumerate(kept) if m.role == "user") :]
 
 
 def _parse_day(value: Any, field: str, default: date) -> date:

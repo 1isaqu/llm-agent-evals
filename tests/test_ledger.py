@@ -193,7 +193,7 @@ def test_markdown_groups_entries_by_status_and_is_deterministic():
         < text.index("## Open queue (1)")
     )
     assert "1 closed, 1 partially closed, 1 open, 1 landmines flagged." in text
-    assert "### L-3: A class" in text and "- **Gap.** g" in text
+    assert "### L-3: A class" in text and "- Gap: g" in text
     assert "## Landmines flagged, not fixed" in text and "careful" in text
 
 
@@ -215,6 +215,19 @@ def test_html_is_self_contained_and_escapes_everything():
     assert "<script>" not in page and "&lt;script&gt;" in page and "&amp; more" in page
     assert "&lt;b&gt;title" in page
     assert "http://" not in page and "https://" not in page
+
+
+def test_code_spans_become_code_elements_in_the_html_page():
+    data = parse_ledger(
+        {
+            "title": "T",
+            "intro": "Run `ledger verify` first.",
+            "entries": [entry(finding="`explain_metric` serves <b>the</b> formula")],
+        }
+    )
+    page = render_html(data)
+    assert "<code>explain_metric</code> serves &lt;b&gt;the&lt;/b&gt; formula" in page
+    assert "<code>ledger verify</code>" in page and "`" not in page
 
 
 def test_an_empty_section_says_so():

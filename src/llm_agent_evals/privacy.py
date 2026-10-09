@@ -1,15 +1,18 @@
 """Egress guard: the last check before tool output can reach an external model.
 
-The data contract contains no personal identifiers, so a correctly mapped data
-source never produces any. The guard exists for the case where it does anyway:
+The data contract contains no customer identifiers, so a correctly mapped data
+source never produces any. (Agent names and logins are part of the contract and are
+sent to the model on purpose.) The guard exists for the case where one appears anyway:
 a user maps a column that happens to hold free text, a portfolio label carries an
 address, a join pulls in a contact field. It inspects every tool result and either
 redacts the offending values or blocks the whole result, depending on policy.
 
 It is a safety net, not a classifier. It looks for field names that commonly hold
-personal data and for string shapes (e-mail addresses, phone-like and long digit
-runs). It cannot recognise a person's name written in free text, so the primary
-protection stays the contract: do not expose such columns to the agent.
+personal data and for value shapes: e-mail addresses, phone-like and long digit runs
+in strings, and whole numbers of nine or more digits (a phone or tax number stored as
+an integer column). Floats are left alone, since amounts are floats. It cannot
+recognise a person's name written in free text, so the primary protection stays the
+contract: do not expose such columns to the agent.
 """
 
 from __future__ import annotations
@@ -95,6 +98,8 @@ class EgressGuard:
             return [self._walk(item, f"{path}[{i}]", findings) for i, item in enumerate(node)]
         if isinstance(node, str):
             return self._scrub_string(node, path, findings)
+        if isinstance(node, int) and not isinstance(node, bool):
+            return self._scrub_integer(node, path, findings)
         return node
 
     def _walk_entry(self, key: Any, value: Any, path: str, findings: list[EgressFinding]) -> Any:
@@ -103,6 +108,13 @@ class EgressGuard:
             findings.append(EgressFinding(child_path, "field"))
             return REDACTED
         return self._walk(value, child_path, findings)
+
+    @staticmethod
+    def _scrub_integer(value: int, path: str, findings: list[EgressFinding]) -> Any:
+        if _LONG_DIGITS.fullmatch(str(abs(value))):
+            findings.append(EgressFinding(path, "long_digits"))
+            return REDACTED
+        return value
 
     @staticmethod
     def _scrub_string(text: str, path: str, findings: list[EgressFinding]) -> str:

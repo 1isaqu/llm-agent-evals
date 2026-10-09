@@ -51,21 +51,21 @@ def _strip_fence(raw: str) -> str:
 
 
 def extract_json_object(raw: str) -> Any:
-    """Parse the first JSON object found in `raw`, or return None.
+    """Parse the JSON object that starts at the first `{` in `raw`, or return None.
 
     Tolerates code fences, prose before and after the object and literal control
     characters inside strings (`strict=False` accepts everything strict parsing accepts).
+    Decoding stops where the object ends, so text after it is ignored.
     """
     candidate = _strip_fence(raw or "")
-    if not candidate.startswith("{"):
-        start, end = candidate.find("{"), candidate.rfind("}")
-        if start == -1 or end <= start:
-            return None
-        candidate = candidate[start : end + 1]
-    try:
-        return json.loads(candidate, strict=False)
-    except (ValueError, TypeError):
+    start = candidate.find("{")
+    if start == -1:
         return None
+    try:
+        value, _ = json.JSONDecoder(strict=False).raw_decode(candidate, start)
+    except ValueError:
+        return None
+    return value
 
 
 def _highlights(items: Any) -> list[dict[str, str]]:

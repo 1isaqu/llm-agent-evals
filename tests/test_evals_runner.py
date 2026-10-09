@@ -66,6 +66,22 @@ def test_a_clean_scripted_run_has_no_violations():
     assert result.result.response["confidence"] == "high"
 
 
+def _with_highlight(value):
+    final = dict(FINAL["final"], text="Portfolio T-01 generated 400.0.")
+    final["highlights"] = [{"type": "metric", "label": "Generated", "value": value}]
+    script = [call("get_portfolio_metrics", portfolio_name="Portfolio T-01"), {"final": final}]
+    return scenario(script, {"answer": {"traceable_numbers": True}})
+
+
+def test_a_highlight_value_gets_the_same_numeric_check_as_the_answer_text():
+    clean = run_scenario(_with_highlight("400.0"))
+    assert clean.violations == ()
+    invented = run_scenario(_with_highlight("73.4%"))
+    assert invented.violation_ids == ("faithfulness:untraceable_number",)
+    assert invented.violations[0].details["where"] == "highlights[0].value"
+    assert invented.violations[0].details["token"] == "73.4%"
+
+
 def test_a_script_that_is_too_short_is_a_harness_failure_not_a_pass():
     result = run_scenario(
         scenario([call("get_portfolio_metrics", portfolio_name="Portfolio T-01")])

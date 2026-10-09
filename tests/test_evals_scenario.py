@@ -117,6 +117,43 @@ def test_a_bad_now_and_a_bad_session_are_reported():
         parse(session={"product_line": "auto"})
 
 
+SESSION = {"product_line": "auto", "date_from": "2026-03-01", "date_to": "2026-03-18"}
+
+
+def test_an_unknown_session_key_is_an_error_that_names_the_file():
+    with pytest.raises(ScenarioError, match=r"t1\.json: unknown key\(s\) in session: date_too"):
+        parse(session={**SESSION, "date_too": "2026-03-19"})
+
+
+def test_a_misspelled_dataset_section_is_an_error_that_names_the_file_and_the_section():
+    typo = {"auto": {"agent_rolup": []}}
+    with pytest.raises(ScenarioError, match=r"t1\.json: unknown dataset section.*agent_rolup"):
+        parse(datasets=typo)
+
+
+def test_a_misspelled_section_added_by_a_dataset_patch_is_caught_too(tmp_path):
+    (tmp_path / "base.json").write_text(json.dumps(DATASET), encoding="utf-8")
+    body = raw(dataset="base.json", dataset_patch={"auto": {"status_rolup": []}})
+    del body["datasets"]
+    with pytest.raises(ScenarioError, match="status_rolup"):
+        parse_scenario(body, tmp_path / "t1.json")
+
+
+def test_a_dataset_line_and_a_session_must_be_objects():
+    with pytest.raises(ScenarioError, match="must be an object"):
+        parse(datasets={"auto": []})
+    with pytest.raises(ScenarioError, match="'session' must be an object"):
+        parse(session=["auto"])
+
+
+def test_a_bad_business_config_is_a_scenario_error_not_a_crash_at_run_time():
+    with pytest.raises(ScenarioError, match=r"t1\.json: invalid config: .*grace_dayz"):
+        parse(config={"grace_dayz": 3})
+    with pytest.raises(ScenarioError, match="invalid config"):
+        parse(config={"risk_low_max": 50.0, "risk_medium_max": 10.0})
+    assert parse(config={"grace_days": 7}).config == {"grace_days": 7}
+
+
 def test_the_session_line_must_have_data():
     with pytest.raises(ScenarioError, match="no data for line"):
         parse(

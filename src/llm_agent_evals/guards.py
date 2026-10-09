@@ -47,8 +47,8 @@ class RunGuard:
     retry_jitter_seconds: float = 0.2
 
 
-# JSON with digits, punctuation and accented text tokenises nearer 3 characters per
-# token than English prose does. Using 4 under-estimates the real size of a result.
+# JSON with digits and punctuation tokenises nearer 3 characters per token than English
+# prose does. Using 4 under-estimates the real size of a result.
 CHARS_PER_TOKEN_ESTIMATE = 3
 
 
@@ -481,7 +481,7 @@ def _failure_payload(error_type: str, exc: Exception) -> dict[str, Any]:
             "data_unavailable",
             hint="This data is not available from the configured source.",
             user_facing="That data is not available right now.",
-            error_detail=str(exc),
+            error_detail=type(exc).__name__,
         )
     return build_tool_error(
         "internal_error",

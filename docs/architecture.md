@@ -1,6 +1,6 @@
 # Architecture
 
-The package has four layers. Each depends only on the ones below it, and nothing below the agent
+The package has five layers. Each depends only on the ones below it, and nothing below the agent
 layer knows that a language model exists.
 
 ```
@@ -72,23 +72,24 @@ POST /chat  ->  ChatService.handle
 
 ## Extension points
 
-**A new tool.** Write a handler `(ctx, args) -> result`, wrap it in a `Tool` with a closed input
+To add a tool, write a handler `(ctx, args) -> result`, wrap it in a `Tool` with a closed input
 schema and register it. The schema the model sees, the validation and the code are one object. The
 system prompt's tool list is generated from the registry, so it picks the tool up without edits.
 Add a scenario for it.
 
-**A new data backend.** Implement the nine methods of `DataSource` (see `docs/data-contract.md`)
+To add a data backend, implement the nine methods of `DataSource` (see `docs/data-contract.md`)
 and pass `{"line_name": source}` to `Agent`. Wrap it in `CachedSource` if the queries are slow.
 
-**A new model provider.** Implement `LLMClient.complete(ModelRequest) -> ModelTurn`. The two
-shipped adapters are about 120 lines each and only translate between the neutral types and one
-wire format.
+To add a model provider, implement `LLMClient.complete(ModelRequest) -> ModelTurn`. The two shipped
+adapters are about 120 lines each and only translate between the neutral types and one wire
+format.
 
-**A different pace model.** Implement `PaceProvider.forecast(source, now, config)` and pass it to
-`Agent(pace=...)`. The shipped baseline is a mean hourly profile; no fitted artifact is included.
+To use a different pace model, implement `PaceProvider.forecast(source, now, config)` and pass it
+to `Agent(pace=...)`. The shipped baseline is a mean hourly profile, and no fitted artifact is
+included.
 
-**A different business definition.** Edit `BusinessConfig` or point `AGENT_BUSINESS_CONFIG` at a JSON
-file. Run `llm-agent-evals metrics --write docs/metric-registry.default.json` afterwards: a test
+To change a business definition, edit `BusinessConfig` or point `AGENT_BUSINESS_CONFIG` at a JSON
+file. Then run `llm-agent-evals metrics --write docs/metric-registry.default.json`, because a test
 fails when the snapshot and the code disagree.
 
 ## What is injected, and why

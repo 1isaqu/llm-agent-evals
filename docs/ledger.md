@@ -51,5 +51,5 @@ regenerate both documents and compare them with the committed ones.
 
 ## Why a generator instead of a page
 
-A hand-edited status page is true on the day it is written. Here, renaming a test or deleting a
+A hand-edited ledger goes stale as soon as a test is renamed. Here, renaming a test or deleting a
 scenario fails `ledger verify`, and editing the data without regenerating fails the drift test.

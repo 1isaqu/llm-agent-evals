@@ -1,10 +1,14 @@
 """Conversation compaction for the tool loop.
 
 When the tool results of a request approach the token budget, the oldest tool-call groups
-are replaced by one short user note listing what was already called and a digest of each
-result. A group is an assistant message with tool calls plus the tool messages that answer
-it. Groups are removed whole: a tool message without its call (or the reverse) is rejected
-by every provider.
+are replaced by one short user note listing what was already called. A group is an
+assistant message with tool calls plus the tool messages that answer it. Groups are
+removed whole: a tool message without its call (or the reverse) is rejected by every
+provider.
+
+The note names each call and its arguments and carries no result text. The note has the
+user role, and the system prompt ranks user text above tool data, so copying a result into
+it would raise instructions hidden in that result to user trust.
 
 The system prompt, every user turn (also those between groups) and the most recent groups
 stay untouched. The loop is written once against the neutral message type, so this function
@@ -19,7 +23,6 @@ from llm_agent_evals.guards import canonical_args
 from llm_agent_evals.llm.base import Message
 from llm_agent_evals.prompt import COMPACTION_NOTICE
 
-DIGEST_CHARS = 160
 ARGS_CHARS = 100
 
 
@@ -40,14 +43,11 @@ def tool_groups(messages: Sequence[Message]) -> list[tuple[int, int]]:
     return groups
 
 
-def _digest(messages: Sequence[Message], start: int, end: int) -> list[str]:
-    results = {m.tool_call_id: m.content for m in messages[start + 1 : end]}
-    entries = []
-    for call in messages[start].tool_calls:
-        args = canonical_args(call.args)[:ARGS_CHARS]
-        result = results.get(call.id, "")[:DIGEST_CHARS]
-        entries.append(f"{call.name}({args}) -> {result}")
-    return entries
+def _calls(messages: Sequence[Message], start: int) -> list[str]:
+    return [
+        f"{call.name}({canonical_args(call.args)[:ARGS_CHARS]})"
+        for call in messages[start].tool_calls
+    ]
 
 
 def compact_messages(messages: Sequence[Message], keep_recent_groups: int = 1) -> list[Message]:
@@ -56,10 +56,10 @@ def compact_messages(messages: Sequence[Message], keep_recent_groups: int = 1) -
     if len(groups) <= keep_recent_groups:
         return list(messages)
     removed = groups[: len(groups) - keep_recent_groups]
-    digest: list[str] = []
-    for start, end in removed:
-        digest.extend(_digest(messages, start, end))
-    notice = Message(role="user", content=COMPACTION_NOTICE.format(calls="; ".join(digest)))
+    calls: list[str] = []
+    for start, _ in removed:
+        calls.extend(_calls(messages, start))
+    notice = Message(role="user", content=COMPACTION_NOTICE.format(calls="; ".join(calls)))
     dropped = {i for start, end in removed for i in range(start, end)}
     out: list[Message] = []
     noted = False

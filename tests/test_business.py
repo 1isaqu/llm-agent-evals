@@ -58,15 +58,21 @@ def test_thresholds_must_be_ordered():
         BusinessConfig(risk_low_max=50.0, risk_medium_max=40.0)
 
 
+@pytest.mark.parametrize("band", [-1.0, 100.0, 250.0])
+def test_the_trend_band_must_be_a_percentage_below_one_hundred(band):
+    with pytest.raises(ConfigError, match="trend_flat_band_pct"):
+        BusinessConfig(trend_flat_band_pct=band)
+
+
 def test_pace_hours_must_be_ordered():
     with pytest.raises(ConfigError, match="pace hours"):
         BusinessConfig(pace_first_hour=12, pace_last_hour=8)
 
 
 def test_from_mapping_converts_lists_and_rejects_unknown_keys():
-    config = BusinessConfig.from_mapping({"excluded_agent_patterns": ["bot%"], "grace_days": 5})
+    config = BusinessConfig.from_mapping({"excluded_agent_patterns": ["bot%"], "grace_days": 7})
     assert config.excluded_agent_patterns == ("bot%",)
-    assert config.grace_days == 5
+    assert config.grace_days == 7
     with pytest.raises(ConfigError, match="unknown business config keys: nope"):
         BusinessConfig.from_mapping({"nope": 1})
 

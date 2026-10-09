@@ -33,8 +33,9 @@ FORCE_FINAL_NUDGE = (
 
 COMPACTION_NOTICE = (
     "[Automatic summary: context budget] Earlier tool calls already made in this "
-    "conversation (their raw results were removed to fit the budget): {calls}. Do not "
-    "repeat these calls; use what you already established."
+    "conversation (their results were removed to fit the budget): {calls}. Call one of "
+    "them again only if you still need its figures; an identical second call returns the "
+    "earlier result."
 )
 
 

@@ -123,9 +123,9 @@ def test_absent_keys_must_not_be_present_in_the_matching_call():
     ("token", "value"),
     [
         ("1,234.50", 1234.5),
-        ("22.39%", 22.39),
+        ("23.75%", 23.75),
         ("-31.11%", -31.11),
-        ("1.61M", 1.61e6),
+        ("2.35M", 2.35e6),
         ("12k", 12000.0),
         ("500", 500.0),
         ("1,000", 1000.0),
@@ -136,13 +136,13 @@ def test_number_parsing(token, value):
 
 
 def test_extraction_ignores_dates_identifiers_and_currency_symbols():
-    text = "On 2026-03-18 Portfolio A-12 and agent_07 reached $1,234.50 (22.39%)."
-    assert [t for t, _ in extract_numbers(text)] == ["12", "1,234.50", "22.39%"]
+    text = "On 2026-03-18 Portfolio A-12 and agent_05 reached $1,234.50 (23.75%)."
+    assert [t for t, _ in extract_numbers(text)] == ["12", "1,234.50", "23.75%"]
 
 
 def test_a_number_that_a_tool_returned_is_traceable_in_any_common_format():
-    allowed = [1234.5, 22.39, 1_610_000.0]
-    assert check_faithfulness("Value $1,234.50 at 22.39%, about $1.61M.", allowed) == []
+    allowed = [1234.5, 23.75, 2_350_000.0]
+    assert check_faithfulness("Value $1,234.50 at 23.75%, about $2.35M.", allowed) == []
 
 
 def test_an_invented_number_is_flagged_with_its_token():

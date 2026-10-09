@@ -74,7 +74,9 @@ def build_agent(
             sources = demo_sources(config, settings.cache_ttl_seconds)
             chosen_now = chosen_now or (lambda: DEMO_NOW)
         else:
-            sources = sqlserver_sources(os.environ if env is None else env, config)
+            sources = sqlserver_sources(
+                os.environ if env is None else env, config, settings.cache_ttl_seconds
+            )
     return Agent(
         llm or build_llm(llm_settings),
         sources,

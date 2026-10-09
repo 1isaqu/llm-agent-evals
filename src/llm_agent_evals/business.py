@@ -56,13 +56,15 @@ class BusinessConfig:
 
     max_window_days: int = 93
     plan_lookback_days: int = 150
-    plan_late_remaining: int = 2
+    plan_late_remaining: int = 3
 
     crosstab_limit: int = 12
     stage_portfolio_limit: int = 8
 
-    pace_first_hour: int = 8
-    pace_last_hour: int = 19
+    trend_flat_band_pct: float = 8.0
+
+    pace_first_hour: int = 9
+    pace_last_hour: int = 18
     pace_min_history_days: int = 3
 
     def __post_init__(self) -> None:
@@ -72,6 +74,8 @@ class BusinessConfig:
         for name in ("grace_days", "max_window_days", "plan_lookback_days", "plan_late_remaining"):
             if getattr(self, name) < 0:
                 raise ConfigError(f"{name} must not be negative")
+        if not 0 <= self.trend_flat_band_pct < 100:
+            raise ConfigError("trend_flat_band_pct must be >= 0 and below 100")
         if not 0 <= self.pace_first_hour < self.pace_last_hour <= 23:
             raise ConfigError("pace hours must satisfy 0 <= first < last <= 23")
 

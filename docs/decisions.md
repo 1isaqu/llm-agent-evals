@@ -56,8 +56,9 @@ analytics with canned rows. Only the SQL itself needs a database to be exercised
 ## 7. Rows are additive across product lines
 
 Two lines are combined by concatenating rows, then recomputing every ratio once. Averaging two
-conversion rates is wrong (a 50% line with ten contacts and a 10% line with ninety do not average
-to 30%). Because the rows are counters, a merge cannot be done wrong by accident.
+conversion rates is wrong (a 50% line with ten contacts and a 10% line with ninety combine to
+14%, not the 30% a plain average of the two rates gives). The rows are counts and sums, so
+merging two lines is concatenation and every ratio is computed after it.
 
 ## 8. Risk: one denominator, composite is the maximum
 
@@ -81,6 +82,10 @@ A re-written installment would otherwise be counted twice. Every query keeps the
 ranking subquery. With the filter outside, a late re-write that falls outside the filter wins the
 rank and hides the valid row.
 
+Agreements are then counted as rows of that table, which holds one row per
+`(agreement_id, portfolio_id)`. `COUNT(DISTINCT agreement_id)` would merge two agreements that
+share an id across portfolios and land in the same group.
+
 *Cost:* an agreement whose latest row has a status outside the sets is judged by its latest row
 that is inside them. That is the documented behaviour and it is tested.
 
@@ -94,7 +99,7 @@ across aggregates.
 
 `ScriptedLLM` replays a fixed script and is what scenarios use. `RuleBasedLLM` answers any question
 from keyword rules, so the CLI, the HTTP service and a fresh clone work with no key. Neither uses
-randomness or the network. Neither pretends to be a model.
+randomness or the network, and neither imitates a language model.
 
 ## 13. Scenarios measure the machinery; self-tests measure the harness
 
@@ -112,19 +117,21 @@ cannot change a score, and nothing attributes a failure to a metric by searching
 
 ## 15. The numeric check is a safety net, not a proof
 
-It extracts numbers from the answer and requires each one of at least 10 to match a number the
+It extracts numbers from the answer and requires every number of 10 or more to match a number the
 model actually saw (in a tool result, in a string of a result, or in the question), or, for values
 of 100 and above, the sum of two such numbers. It catches an invented number. It cannot catch a
 real number on the wrong label, which `forbidden` wording and hand-computed ground truth are for.
 The two-number sum is limited to large values because among a few dozen small counts almost any
 small number is the sum of two of them.
 
-## 16. Personal data never enters the contract, and a guard checks anyway
+## 16. Customer identifiers never enter the contract, and a guard checks anyway
 
-The data contract has no name, document, phone or e-mail field. If a user maps a free-text column
-by mistake, the egress guard inspects every tool result before a model can see it. It redacts (or
-blocks) denied field names and e-mail, phone-like and long-digit shapes. It is a safety net: it
-cannot recognise a name in free text.
+The data contract has no customer name, document, phone or e-mail field. Agent display names and
+logins are part of it and are sent to the model, because per-agent answers and rankings need them.
+If a user maps a free-text column by mistake, the egress guard inspects every tool result before a
+model can see it. It redacts (or blocks) denied field names, e-mail and phone-like shapes, and
+runs of nine or more digits, in strings and in whole numbers. It is a safety net: it cannot
+recognise a name in free text.
 
 ## 17. Telemetry carries no arguments, results or text
 
@@ -134,12 +141,14 @@ shielded: a failing observer cannot fail a request.
 
 ## 18. The ledger is data
 
-A page of claims decays. The ledger is a JSON file; a verifier resolves every scenario, test and
-module it cites; a generator renders Markdown and HTML; a test fails when the committed documents
-differ from the generated ones.
+A hand-edited ledger goes stale as soon as a test is renamed or a scenario is deleted. So the
+ledger is a JSON file. A verifier resolves every scenario, test and module it cites, a generator
+renders Markdown and HTML, and a test fails when the committed documents differ from the generated
+ones.
 
 ## 19. Standard library only at runtime
 
-The model clients use `urllib`, the validator is a small JSON-schema subset, the service is plain WSGI and
-the SQL driver is an optional extra imported lazily. The package installs with no dependencies and
-the tests run offline. The cost is that none of these is as complete as the library it replaces.
+The model clients use `urllib`, the validator is a small JSON-schema subset, the service is plain
+WSGI and the SQL driver is an optional extra imported lazily. The package installs with no
+dependencies and the tests run offline. The cost is that none of these is as complete as the
+library it replaces.

@@ -12,6 +12,7 @@ as they are: whether a test passes is the test runner's business.
 from __future__ import annotations
 
 import html
+import re
 from collections.abc import Mapping
 
 from llm_agent_evals.ledger.model import STATUSES, Entry, Evidence, Ledger
@@ -21,10 +22,16 @@ _HEADINGS = {
     "partial": "Partially closed",
     "open": "Open queue",
 }
+_CODE_SPAN = re.compile(r"`([^`]+)`")
 GENERATED_NOTE = (
     "Generated from `ledger/entries.json` by `llm-agent-evals ledger generate`. "
     "Edit the data, not this file."
 )
+
+
+def _html_text(value: str) -> str:
+    """Escape `value`, then turn Markdown code spans into `<code>` elements."""
+    return _CODE_SPAN.sub(lambda m: f"<code>{m.group(1)}</code>", html.escape(value))
 
 
 def _ref_text(item: Evidence, scenario_status: Mapping[str, str] | None) -> str:
@@ -43,16 +50,16 @@ def _entry_markdown(entry: Entry, scenario_status: Mapping[str, str] | None) -> 
     lines = [
         f"### {entry.id}: {entry.failure_class}",
         "",
-        f"- **Finding.** {entry.finding}",
-        f"- **Fix.** {entry.fix}",
+        f"- Finding: {entry.finding}",
+        f"- Fix: {entry.fix}",
     ]
     if entry.gap:
-        lines.append(f"- **Gap.** {entry.gap}")
+        lines.append(f"- Gap: {entry.gap}")
     if entry.evidence:
         refs = "; ".join(_ref_text(item, scenario_status) for item in entry.evidence)
-        lines.append(f"- **Evidence.** {refs}")
+        lines.append(f"- Evidence: {refs}")
     if entry.residual_risk:
-        lines.append(f"- **Residual risk.** {entry.residual_risk}")
+        lines.append(f"- Residual risk: {entry.residual_risk}")
     return [*lines, ""]
 
 
@@ -65,7 +72,7 @@ def render_markdown(ledger: Ledger, scenario_status: Mapping[str, str] | None = 
         "",
         ledger.intro,
         "",
-        f"**Status:** {counts['closed']} closed, {counts['partial']} partially closed, "
+        f"Status: {counts['closed']} closed, {counts['partial']} partially closed, "
         f"{counts['open']} open, {counts['landmines']} landmines flagged.",
         "",
     ]
@@ -79,7 +86,7 @@ def render_markdown(ledger: Ledger, scenario_status: Mapping[str, str] | None = 
             lines.extend(_entry_markdown(entry, scenario_status))
     if ledger.landmines:
         lines += ["## Landmines flagged, not fixed", ""]
-        lines += [f"- **{mine.id}.** {mine.note}" for mine in ledger.landmines] + [""]
+        lines += [f"- {mine.id}: {mine.note}" for mine in ledger.landmines] + [""]
     if ledger.methodology:
         lines += ["## Method", ""] + [f"- {line}" for line in ledger.methodology] + [""]
     if ledger.constraints:
@@ -117,11 +124,11 @@ def _entry_html(entry: Entry, scenario_status: Mapping[str, str] | None) -> str:
         ("Residual risk", entry.residual_risk),
     ]
     body = "".join(
-        f'<p><span class="label">{label}.</span> {html.escape(value)}</p>'
+        f'<p><span class="label">{label}.</span> {_html_text(value)}</p>'
         for label, value in rows
         if value
     )
-    title = html.escape(f"{entry.id}: {entry.failure_class}")
+    title = _html_text(f"{entry.id}: {entry.failure_class}")
     return f'<div class="entry {entry.status}"><h3>{title}</h3>{body}</div>'
 
 
@@ -143,7 +150,7 @@ def render_html(ledger: Ledger, scenario_status: Mapping[str, str] | None = None
         sections.append(f"<h2>{_HEADINGS[status]} ({len(entries)})</h2>{cards}")
     if ledger.landmines:
         items = "".join(
-            f"<li><b>{html.escape(m.id)}.</b> {html.escape(m.note)}</li>" for m in ledger.landmines
+            f"<li><b>{html.escape(m.id)}.</b> {_html_text(m.note)}</li>" for m in ledger.landmines
         )
         sections.append(f"<h2>Landmines flagged, not fixed</h2><ul>{items}</ul>")
     for heading, lines in (
@@ -151,15 +158,15 @@ def render_html(ledger: Ledger, scenario_status: Mapping[str, str] | None = None
         ("Hard constraints", ledger.constraints),
     ):
         if lines:
-            items = "".join(f"<li>{html.escape(line)}</li>" for line in lines)
+            items = "".join(f"<li>{_html_text(line)}</li>" for line in lines)
             sections.append(f"<h2>{heading}</h2><ul>{items}</ul>")
     return (
         '<!doctype html>\n<html lang="en"><head><meta charset="utf-8">'
         '<meta name="viewport" content="width=device-width, initial-scale=1">'
         f"<title>{html.escape(ledger.title)}</title><style>{_CSS}</style></head><body>"
         f"<h1>{html.escape(ledger.title)}</h1>"
-        f'<p class="note">{html.escape(GENERATED_NOTE)}</p>'
-        f'<p>{html.escape(ledger.intro)}</p><div class="stats">{stats}</div>'
+        f'<p class="note">{_html_text(GENERATED_NOTE)}</p>'
+        f'<p>{_html_text(ledger.intro)}</p><div class="stats">{stats}</div>'
         + "".join(sections)
         + "</body></html>\n"
     )

@@ -167,6 +167,7 @@ def test_data_unavailable_is_reported_as_such_without_retry():
 
     result = state.dispatch("a_tool", {}, missing)
     assert result["error_type"] == "data_unavailable" and sleeps == []
+    assert "no hourly data" not in json.dumps(result)
 
 
 def test_an_oversized_result_becomes_a_warning_envelope_not_cut_json():

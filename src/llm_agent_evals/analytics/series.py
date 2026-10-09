@@ -61,10 +61,11 @@ def _point_value(bucket: StatusBucket | None, metric: str) -> float | int:
     return bucket.composite_risk_pct()
 
 
-def trend(points: list[dict[str, Any]]) -> tuple[str, float | None]:
+def trend(points: list[dict[str, Any]], flat_band_pct: float) -> tuple[str, float | None]:
     """Compare the mean of the second half of the window with the first half.
 
-    A dead zone of plus or minus 5% reads as "flat". The change is None when the first
+    A dead zone of plus or minus `flat_band_pct` percent reads as "flat" (a business
+    parameter, see `BusinessConfig.trend_flat_band_pct`). The change is None when the first
     half averages zero, where a percentage change has no meaning.
     """
     values = [float(p["value"]) for p in points]
@@ -74,9 +75,10 @@ def trend(points: list[dict[str, Any]]) -> tuple[str, float | None]:
     first = sum(values[:half]) / half
     second = sum(values[half:]) / (len(values) - half)
     change = round((second - first) * 100.0 / first, 2) if first > 0 else None
-    if second > first * 1.05:
+    band = flat_band_pct / 100.0
+    if second > first * (1 + band):
         return "rising", change
-    if second < first * 0.95:
+    if second < first * (1 - band):
         return "falling", change
     return "flat", change
 
