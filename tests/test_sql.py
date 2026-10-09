@@ -299,6 +299,16 @@ def test_the_early_stage_boundary_is_a_config_parameter():
     assert {r["stage"]: r["qty"] for r in strict} == {"early": 1, "late": 1, "middle": 1}
 
 
+def test_early_is_checked_before_late():
+    # Two of four paid also leaves only two to pay, so both rules match and early wins.
+    db = plan_db({1: (4, 2)})
+    end = date(2026, 3, 18)
+    default = db.source().plan_stage_rollup(end)
+    assert {r["stage"]: r["qty"] for r in default} == {"early": 1}
+    one = db.source(BusinessConfig(plan_early_max_paid=1)).plan_stage_rollup(end)
+    assert {r["stage"]: r["qty"] for r in one} == {"late": 1}
+
+
 def test_slip_rollup_by_issue_day_and_by_portfolio_on_due_date():
     db = Db()
     db.agreement(
