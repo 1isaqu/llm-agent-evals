@@ -64,6 +64,11 @@ def test_the_trend_band_must_be_a_percentage_below_one_hundred(band):
         BusinessConfig(trend_flat_band_pct=band)
 
 
+def test_the_early_stage_boundary_must_not_be_negative():
+    with pytest.raises(ConfigError, match="plan_early_max_paid"):
+        BusinessConfig(plan_early_max_paid=-1)
+
+
 def test_pace_hours_must_be_ordered():
     with pytest.raises(ConfigError, match="pace hours"):
         BusinessConfig(pace_first_hour=12, pace_last_hour=8)

@@ -184,7 +184,8 @@ Definitions every implementation must respect:
   `paid_at <= due_at + grace_days`.
 - `plan_stage_rollup` covers approved agreements issued in the `plan_lookback_days` before `end`.
   An installment with `paid_amount > 0` is paid. Stage is `settled` when all are paid, `early`
-  when at most one is, `late` when `plan_late_remaining` or fewer are left, else `middle`.
+  when `plan_early_max_paid` or fewer are, `late` when `plan_late_remaining` or fewer are left,
+  else `middle`. The first rule that matches wins, in that order.
 
 ## Using SQL Server
 

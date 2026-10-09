@@ -180,7 +180,7 @@ def register(registry: ToolRegistry) -> None:
             name="get_plan_stage_distribution",
             description=(
                 "Approved agreements of the recent past grouped by payment-plan stage: early "
-                "(at most one installment paid), middle, late (few installments left), settled "
+                "(few installments paid), middle, late (few installments left), settled "
                 "(everything paid). With a stage, also lists the portfolios holding the most "
                 "open amount in it. Independent of the session window."
             ),

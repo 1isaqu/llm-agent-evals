@@ -5,9 +5,11 @@ date: plan stage is a property of the live book of agreements, not of the dashbo
 The stage comes from payment progress (an installment with `paid_amount > 0` is paid):
 
     settled  every installment paid
-    early    at most one installment paid
+    early    `plan_early_max_paid` or fewer installments paid
     late     `plan_late_remaining` or fewer installments left to pay
     middle   everything else
+
+The first rule that matches wins, in the order above.
 
 `open_amount` is the sum of the amounts of installments not yet paid.
 """
@@ -57,9 +59,9 @@ def stage_summary(
         "total_agreements": total,
         "criterion": (
             f"Approved agreements issued in the last {config.plan_lookback_days} days. "
-            "Stage by payment progress: settled = everything paid; early = at most one "
-            f"installment paid; late = {config.plan_late_remaining} or fewer installments "
-            "left; middle = the rest."
+            "Stage by payment progress: settled = everything paid; early = "
+            f"{config.plan_early_max_paid} or fewer installments paid; late = "
+            f"{config.plan_late_remaining} or fewer installments left; middle = the rest."
         ),
         "reference_date": reference_date,
     }

@@ -381,7 +381,7 @@ class ContractQueries:
         excl = self._exclusions(p)
         stage = (
             "CASE WHEN g.paid_installments >= g.total_installments THEN 'settled' "
-            "WHEN g.paid_installments <= 1 THEN 'early' "
+            f"WHEN g.paid_installments <= {int(cfg.plan_early_max_paid)} THEN 'early' "
             f"WHEN g.total_installments - g.paid_installments <= {int(cfg.plan_late_remaining)} "
             "THEN 'late' ELSE 'middle' END"
         )
