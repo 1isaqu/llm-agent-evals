@@ -33,9 +33,9 @@ are structured (`layer:code`) and scores are counted per layer, so rewording a v
 cannot change a score. Self-test scenarios script a mistake on purpose and declare the violation the
 harness must report, which shows that each layer can fail.
 
-The reliability ledger is a data file, `ledger/entries.json`, and its documents in `docs/` are
-generated from it. A verifier resolves every scenario and test it cites, and a test fails when the
-generated documents drift.
+The reliability ledger is a data file, [ledger/entries.json](ledger/entries.json), and its
+documents in `docs/` are generated from it. A verifier resolves every scenario and test it cites,
+and a test fails when the generated documents drift.
 
 The data contract has no customer name, document, phone or e-mail field. The two columns that
 could link a row to a customer once real data is mapped are `contact_events.debt_owner_id` and

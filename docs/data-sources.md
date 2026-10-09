@@ -12,8 +12,8 @@ do not imitate any portfolio.
 
 | Where | What it holds | Notes |
 |---|---|---|
-| `src/llm_agent_evals/sources/demo.py` | In-memory SQLite databases for two product lines: 36 and 24 agreements, six agents per line, a catalogue of six contact results, about a dozen days of contact events. | There is no random number generator. Every row comes from arithmetic on the row index, so each run builds the same database. The fixed clock is 2026-03-18 15:30. Counts, amounts, hours, the status cycle and the two re-written installments are arbitrary. |
-| `scenarios/datasets/basic.json` | Hand-written rollup rows for the evaluation scenarios, one dataset for all of them. | Round numbers (for example 4000.0 and 8 agreements) so the ground truth in each scenario can be computed by hand. It is the only fixture file in the repository. |
+| [src/llm_agent_evals/sources/demo.py](../src/llm_agent_evals/sources/demo.py) | In-memory SQLite databases for two product lines: 36 and 24 agreements, six agents per line, a catalogue of six contact results, about a dozen days of contact events. | There is no random number generator. Every row comes from arithmetic on the row index, so each run builds the same database. The fixed clock is 2026-03-18 15:30. Counts, amounts, hours, the status cycle and the two re-written installments are arbitrary. |
+| [scenarios/datasets/basic.json](../scenarios/datasets/basic.json) | Hand-written rollup rows for the evaluation scenarios, one dataset for all of them. | Round numbers (for example 4000.0 and 8 agreements) so the ground truth in each scenario can be computed by hand. It is the only fixture file in the repository. |
 | `tests/` | Small rows written inline in the test code. | Invented values, a handful per test. No fixture files. |
 | `BusinessConfig` and `RunGuard` defaults | Status ids, risk cut-offs, grace days, window limits, trend band, pace hours, guard ceilings. | Placeholders. Calibrate them on your own data before trusting a reported number. |
 

@@ -2,7 +2,7 @@
 
 [docs/reliability-ledger.md](reliability-ledger.md) (and the HTML twin next to it) is a status
 board of failure classes of the agent: what went wrong, what fixed it, which scenario or test keeps
-it fixed, and what risk remains. It is generated from `ledger/entries.json`.
+it fixed, and what risk remains. It is generated from [ledger/entries.json](../ledger/entries.json).
 
 ```
 llm-agent-evals ledger verify                    # every reference resolves, rules hold
