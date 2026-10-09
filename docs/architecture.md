@@ -77,8 +77,9 @@ schema and register it. The schema the model sees, the validation and the code a
 system prompt's tool list is generated from the registry, so it picks the tool up without edits.
 Add a scenario for it.
 
-To add a data backend, implement the nine methods of `DataSource` (see [docs/data-contract.md](data-contract.md))
-and pass `{"line_name": source}` to `Agent`. Wrap it in `CachedSource` if the queries are slow.
+To add a data backend, implement the nine methods of `DataSource` (see
+[docs/data-contract.md](data-contract.md)) and pass `{"line_name": source}` to `Agent`. Wrap it in
+`CachedSource` if the queries are slow.
 
 To add a model provider, implement `LLMClient.complete(ModelRequest) -> ModelTurn`. The two shipped
 adapters are about 130 to 140 lines each and only translate between the neutral types and one wire

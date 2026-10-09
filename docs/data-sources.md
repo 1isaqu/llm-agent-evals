@@ -7,8 +7,8 @@ are grouped in three tiers.
 ## Tier 0: seeded synthetic data
 
 All of it is invented, and every constant in it is arbitrary. Nothing was fitted, tuned or
-compared against a real operation. The values were picked so that each business rule has
-something to act on, not to look like any particular portfolio.
+compared against a real operation. The values give each business rule something to act on and
+do not imitate any portfolio.
 
 | Where | What it holds | Notes |
 |---|---|---|
@@ -27,8 +27,9 @@ no remote host; the only outside call is to a model provider that you configure 
 ## Tier 2: your own data
 
 You connect it at run time and never commit it. Map your database to the eight tables in
-[docs/data-contract.md](data-contract.md) (views are fine), or implement the `DataSource` protocol yourself. The
-SQL Server connection helper reads host, user and password from environment variables only.
+[docs/data-contract.md](data-contract.md) (views are fine), or implement the `DataSource` protocol
+yourself. The SQL Server connection helper reads host, user and password from environment
+variables only.
 `.gitignore` excludes `.env`, `data/` and the usual data and model file extensions, so a local
 export does not end up in a commit by accident.
 

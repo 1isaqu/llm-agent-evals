@@ -19,8 +19,8 @@ result, shares a cache and has a circuit breaker. Time, sleep, cache and breaker
 tests need no patching.
 
 A tool is one object that holds its schema and its handler. The schema the model sees also
-validates its arguments, and the tool list in the prompt is generated from the registry. Model
-mistakes come back as structured errors with a hint, not as stack traces.
+validates its arguments, and the tool list in the prompt is generated from the registry. An
+unknown tool or a bad argument from the model comes back as a structured error with a hint.
 
 `BusinessConfig` drives the SQL, the analytics, the system prompt and the metric registry, so the
 four cannot disagree. Some of the rules it carries: composite risk is the maximum axis and never
@@ -29,12 +29,13 @@ from two product lines are added before any ratio is computed.
 
 The evaluation harness has eight assertion layers: tool selection, SQL channel, parameters,
 numeric faithfulness, ground truth, answer wording, false unavailability and outcome. Violations
-are structured (`layer:code`) and scores come from the layer, not from searching a message.
-Self-test scenarios script a mistake on purpose and declare the violation the harness must report,
-which shows that each layer can fail.
+are structured (`layer:code`) and scores are counted per layer, so rewording a message cannot
+change a score. Self-test scenarios script a mistake on purpose and declare the violation the
+harness must report, which shows that each layer can fail.
 
-The reliability ledger is data. A verifier resolves every scenario and test it cites, and a test
-fails when the generated documents drift.
+The reliability ledger is a data file, `ledger/entries.json`, and its documents in `docs/` are
+generated from it. A verifier resolves every scenario and test it cites, and a test fails when the
+generated documents drift.
 
 The data contract has no customer name, document, phone or e-mail field. Its only debtor-side key
 is the opaque `debt_owner_id` in `contact_events`, and no query reads it. An egress guard inspects
@@ -96,8 +97,8 @@ confidence: high
 tools: filter_portfolios_by_risk
 ```
 
-The mock is a keyword router that repeats values from the tool result. It is not a language
-model. Its job is to let the pipeline run end to end anywhere.
+The mock is a keyword router with no language model behind it: it picks a tool from fixed keyword
+rules and repeats values from the result, so the pipeline runs end to end on any machine.
 
 The HTTP service (plain WSGI, bind it to localhost):
 
@@ -120,7 +121,7 @@ Other commands: `llm-agent-evals tools` (the 15 tools), `prompt` (the rendered s
 
 ## Using a real model
 
-Set environment variables. `LLM_API_KEY` is the only place the key is read.
+Set environment variables. The key is read only from `LLM_API_KEY`.
 
 ```bash
 export LLM_PROVIDER=anthropic          # or openai_compatible
@@ -182,7 +183,8 @@ not against a live server. For another database, implement `DataSource` and skip
 
 ## Configuration
 
-Environment variables (see [.env.example](.env.example); the package does not read `.env` files by itself):
+Environment variables (see [.env.example](.env.example); the package does not read `.env` files
+by itself):
 
 | Variable | Default | Meaning |
 |---|---|---|
@@ -236,8 +238,8 @@ ruff format --check .
 
 The tests use small inline fixtures with invented values. SQL is executed on in-memory SQLite. The
 HTTP adapters are also driven end to end against a throwaway fake provider on `127.0.0.1`. Nothing
-needs a key or a database. CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs the same commands with the mock
-model only.
+needs a key or a database. CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs the same
+commands with the mock model only.
 
 The suite was run locally on Python 3.14. CI runs it on 3.11 to 3.14.
 
@@ -266,33 +268,35 @@ tests/         pytest suite
 Short list; the full reasoning is in [docs/decisions.md](docs/decisions.md).
 
 - Guards are enforced inside `dispatch`, because a model can return a batch of calls in one turn.
-- Model mistakes are structured return values (`error_type`, `retryable`, `hint`), not exceptions.
+- A mistake the model can cause is a structured return value with `error_type`, `retryable` and
+  `hint`, which the model reads on its next turn.
 - Analytics are pure functions over rollup rows, so every scenario runs the real analytics with
   canned rows and only the SQL needs a database to be exercised.
 - Business filters sit inside the de-duplication subquery, before the row ranking.
-- A numeric faithfulness check is a safety net: it catches an invented number, not a wrong label.
-  Hand-computed ground truth and forbidden wording cover that gap per scenario.
+- The numeric faithfulness check catches an invented number but cannot tell when a real number
+  sits on the wrong label. Hand-computed ground truth and forbidden wording cover that gap per
+  scenario.
 - The ledger and the metric registry snapshot are generated, and tests fail on drift.
 
 ## Limitations
 
-No live model provider and no live SQL Server was used. The two model adapters and the T-SQL are
+No live model provider and no live SQL Server were used. The two model adapters and the T-SQL are
 verified through injected fakes and generated text, so expect to adjust them on first contact.
-Scripted scenarios measure the machinery, not a model. A real model is measured only by
-`eval --live`, which has never been run here, and there is no judge layer for tone or
-completeness. The rule-based mock produces terse answers meant to prove the plumbing, not to read
-well.
+Scripted scenarios exercise the loop, the guards and the analytics. Only `eval --live` measures a
+real model, and it has never been run here. There is no judge layer for tone or completeness. The
+rule-based mock gives terse answers; it exists to drive the pipeline.
 
 Every business threshold is invented. The risk cut-offs, grace period and window limit show where
 calibrated values go, and the agent's statements about risk level mean nothing until they are
-calibrated on your own data. The guard ceilings are engineering defaults, not tuned values. The
-daily pace is a simple baseline: the mean hourly profile of recent past days that have rows. A day
-with no rows in the pace hours drops out of the history. Weekends and holidays usually have none,
-but neither does a working day that produced nothing, so after quiet days the expected total reads
-slightly high. Every day that has rows, weekend or not, feeds the same profile. A forecast model
-would plug in through the `PaceProvider` protocol.
+calibrated on your own data. The guard ceilings are untuned engineering defaults.
 
-The egress guard is a safety net. It cannot recognise a name in free text, it can redact a long id
+The daily pace is a simple baseline: the mean hourly profile of recent past days that have rows. A
+day with no rows in the pace hours drops out of the history. Weekends and holidays usually have
+none, but neither does a working day that produced nothing, so after quiet days the expected total
+reads slightly high. Every day that has rows, weekend or not, feeds the same profile. A forecast
+model would plug in through the `PaceProvider` protocol.
+
+The egress guard is a safety net: it cannot recognise a name in free text, it can redact a long id
 or a very large whole-number total by mistake, and it does not inspect the user's own message. The
 HTTP layer has no authentication, rate limiting or TLS, so bind it to localhost or put it behind
 something that provides them. The cache and the circuit breaker are per process. The tool
