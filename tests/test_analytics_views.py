@@ -250,6 +250,16 @@ def test_pace_compares_today_with_the_mean_hourly_profile():
     assert result["history_days"] == 5
 
 
+def test_days_without_rows_are_not_part_of_the_baseline():
+    active = ("2026-03-09", "2026-03-12", "2026-03-13")  # the days between have no rows
+    rows = [{"day": d, "hour": h, "qty": q} for d in active for h, q in PROFILE.items()]
+    result = BaselinePace().forecast(
+        FixtureSource({"hourly_counts": rows}), datetime(2026, 3, 18, 15, 30), CONFIG
+    )
+    assert result["history_days"] == 3
+    assert result["expected_total"] == 17.0  # not 17 * 3 / 9 calendar days
+
+
 def test_the_current_hour_is_in_progress_and_not_part_of_the_comparison():
     source = hourly_source(today_counts={15: 99})
     result = BaselinePace().forecast(source, datetime(2026, 3, 18, 15, 30), CONFIG)

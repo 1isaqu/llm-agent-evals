@@ -107,7 +107,7 @@ _KPIS: dict[str, dict[str, str]] = {
     },
     "daily_pace": {
         "formula": "Always TODAY according to the agent clock, whatever the session window is. "
-        "Baseline estimator: mean hourly profile of recent history.",
+        "Baseline estimator: mean hourly profile of recent past days that have rows.",
         "source": "analytics/pace.py",
     },
 }

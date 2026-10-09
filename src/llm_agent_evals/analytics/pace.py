@@ -13,6 +13,13 @@ the expectation:
 The projection is withheld while the elapsed share of the expected day is below
 `min_share`, because dividing by a tiny share amplifies noise.
 
+The mean runs over past days that have at least one row in the pace hours. A day with no
+rows is not in the history, which keeps weekends and holidays out and makes the baseline an
+average over active days. It also drops a working day that produced nothing, so after quiet
+days the expected total reads slightly high, and every active weekday shares one profile.
+The source returns no rows for an empty hour, so it cannot tell a quiet day from a missing
+one, and the baseline does not try to.
+
 "Today" and the current hour come from the clock given to the agent, so results are
 reproducible in tests.
 """
