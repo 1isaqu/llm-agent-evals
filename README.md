@@ -3,14 +3,13 @@
 A tool-calling analytics agent together with the harness that evaluates it: golden scenarios, a
 metric registry with caveats, a reliability ledger, a deterministic mock model for CI, and a real
 model that plugs in through environment variables. The domain is debt collections (portfolios,
-agents, agreements, risk). Most of the code is about making the agent testable and checking what
+agents, agreements, risk). Most of the code is there to make the agent testable and to check what
 it does.
 
 ## What it does and why it is interesting
 
 An executive asks a question in plain language. The agent calls read-only tools over rollup data
 and answers with a small JSON contract (text, highlights, suggested actions, sources, confidence).
-The engineering effort goes into making that loop checkable.
 
 The agent loop is written once, over a neutral message type. Provider wire formats live in thin
 adapters, so message alternation errors, compaction and the guards exist in one place. A run guard
@@ -112,7 +111,7 @@ Other commands: `llm-agent-evals tools` (the 15 tools), `prompt` (the rendered s
 
 ## Using a real model
 
-Set environment variables; the key is read nowhere else.
+Set environment variables. `LLM_API_KEY` is the only place the key is read.
 
 ```bash
 export LLM_PROVIDER=anthropic          # or openai_compatible
@@ -132,8 +131,8 @@ skips the self-tests and costs real tokens.
 The agent sees nine rollup methods, and `sources/sql.py` implements them over eight neutral tables.
 Either map your database to those tables (views are fine) or implement the `DataSource` protocol
 yourself. The tables, the columns, the status sets and the row shapes are in
-`docs/data-contract.md`. Then calibrate `BusinessConfig` on your own data: every threshold in
-it is invented.
+`docs/data-contract.md`. Then calibrate `BusinessConfig` on your own data: every threshold in it
+is invented. `docs/data-sources.md` lists what data the repository contains and where yours fits.
 
 ```python
 import os
@@ -238,8 +237,8 @@ src/llm_agent_evals/
   ledger/      model, verifier, renderers
 scenarios/     32 golden scenarios (S), 13 self-tests (X), datasets/basic.json (invented rows)
 ledger/        entries.json, the source of docs/reliability-ledger.md
-docs/          architecture, data-contract, decisions, eval-format, ledger, glossary,
-               metric-registry.default.json, reliability-ledger.md and .html
+docs/          architecture, data-contract, data-sources, decisions, eval-format, ledger,
+               glossary, metric-registry.default.json, reliability-ledger.md and .html
 tests/         pytest suite
 ```
 
@@ -265,16 +264,19 @@ Scripted scenarios measure the machinery, not a model. A real model is measured 
 completeness. The rule-based mock produces terse answers meant to prove the plumbing, not to read
 well.
 
-Every threshold is invented. The risk cut-offs, grace period, window limit and guard budgets show
-where calibrated values go, and the agent's statements about risk level mean nothing until they
-are calibrated on your own data. The daily pace is a baseline (the mean hourly profile of recent
-history), not a forecast model. The `PaceProvider` protocol is where one would plug in.
+Every business threshold is invented. The risk cut-offs, grace period and window limit show where
+calibrated values go, and the agent's statements about risk level mean nothing until they are
+calibrated on your own data. The guard ceilings are engineering defaults, not tuned values. The
+daily pace is a baseline, not a forecast model: the mean hourly profile of recent days that have
+rows, so a working day with no agreements is left out and every active weekday shares one
+profile. The `PaceProvider` protocol is where one would plug in.
 
 The egress guard is a safety net. It cannot recognise a name in free text, it can redact a long id
-or a very large whole-number total by mistake, and it does not inspect the user's own message. The HTTP layer has no authentication,
-rate limiting or TLS, so bind it to localhost or put it behind something that provides them. The
-cache and the circuit breaker are per process. The tool descriptions, the prompt and the answers
-are in English only. The `debts` table of the contract is not read by any query yet.
+or a very large whole-number total by mistake, and it does not inspect the user's own message. The
+HTTP layer has no authentication, rate limiting or TLS, so bind it to localhost or put it behind
+something that provides them. The cache and the circuit breaker are per process. The tool
+descriptions, the prompt and the answers are in English only. The `debts` table of the contract is
+not read by any query yet.
 
 ## Independence
 

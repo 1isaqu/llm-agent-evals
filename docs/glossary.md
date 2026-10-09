@@ -50,7 +50,7 @@ neutral: no company, country, currency rules or vendor schema appears anywhere i
 | `attempt_count` | outreach attempts |
 | `answer_count` | attempts that were answered |
 | `cpc_count` | right-party contacts |
-| `agreement_count` | generated agreements (agreement grain) |
+| `agreement_count` | generated agreements, counted per `(agreement_id, portfolio_id)` pair (agreement grain) |
 | `agreement_count_by_contract` | generated agreements counted per contract (contract grain, totals only) |
 | `agreement_value` | value of all installments of generated agreements |
 | `first_installment_value` | value of first installments of generated agreements |

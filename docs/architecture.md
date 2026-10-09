@@ -1,6 +1,6 @@
 # Architecture
 
-The package has four layers. Each depends only on the ones below it, and nothing below the agent
+The package has five layers. Each depends only on the ones below it, and nothing below the agent
 layer knows that a language model exists.
 
 ```

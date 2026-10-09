@@ -57,8 +57,8 @@ analytics with canned rows. Only the SQL itself needs a database to be exercised
 
 Two lines are combined by concatenating rows, then recomputing every ratio once. Averaging two
 conversion rates is wrong (a 50% line with ten contacts and a 10% line with ninety combine to
-14%, not the 30% a plain average of the two rates gives). Because the rows are counters, a merge
-cannot be done wrong by accident.
+14%, not the 30% a plain average of the two rates gives). The rows are counts and sums, so
+merging two lines is concatenation and every ratio is computed after it.
 
 ## 8. Risk: one denominator, composite is the maximum
 
@@ -81,6 +81,10 @@ A re-written installment would otherwise be counted twice. Every query keeps the
 `(agreement_id, portfolio_id, installment_no)`. The window and status filters sit *inside* the
 ranking subquery. With the filter outside, a late re-write that falls outside the filter wins the
 rank and hides the valid row.
+
+Agreements are then counted as rows of that table, which holds one row per
+`(agreement_id, portfolio_id)`. `COUNT(DISTINCT agreement_id)` would merge two agreements that
+share an id across portfolios and land in the same group.
 
 *Cost:* an agreement whose latest row has a status outside the sets is judged by its latest row
 that is inside them. That is the documented behaviour and it is tested.
@@ -137,12 +141,14 @@ shielded: a failing observer cannot fail a request.
 
 ## 18. The ledger is data
 
-A hand-written page of claims goes stale. The ledger is a JSON file; a verifier resolves every scenario, test and
-module it cites; a generator renders Markdown and HTML; a test fails when the committed documents
-differ from the generated ones.
+A hand-edited ledger goes stale as soon as a test is renamed or a scenario is deleted. So the
+ledger is a JSON file. A verifier resolves every scenario, test and module it cites, a generator
+renders Markdown and HTML, and a test fails when the committed documents differ from the generated
+ones.
 
 ## 19. Standard library only at runtime
 
-The model clients use `urllib`, the validator is a small JSON-schema subset, the service is plain WSGI and
-the SQL driver is an optional extra imported lazily. The package installs with no dependencies and
-the tests run offline. The cost is that none of these is as complete as the library it replaces.
+The model clients use `urllib`, the validator is a small JSON-schema subset, the service is plain
+WSGI and the SQL driver is an optional extra imported lazily. The package installs with no
+dependencies and the tests run offline. The cost is that none of these is as complete as the
+library it replaces.
