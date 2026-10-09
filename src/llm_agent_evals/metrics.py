@@ -91,13 +91,13 @@ _KPIS: dict[str, dict[str, str]] = {
         "source": "sources/sql.py (agreement_value_by_agent)",
     },
     "agreement_count": {
-        "formula": "COUNT(DISTINCT agreement_id) with a generated first installment in the window "
-        "(agreement grain)",
+        "formula": "Number of distinct (agreement_id, portfolio_id) pairs with a generated first "
+        "installment in the window (agreement grain)",
         "source": "sources/sql.py",
     },
     "agreement_count_by_contract": {
-        "formula": "COUNT(DISTINCT agreement_id, portfolio_id, debt_id) through agreement_debts "
-        "(contract grain)",
+        "formula": "Number of distinct (agreement_id, portfolio_id, debt_id) triples through "
+        "agreement_debts (contract grain)",
         "source": "sources/sql.py (contracts_by_agent)",
         "note": "Never use it as a denominator. Ticket and conversion use the agreement grain.",
     },

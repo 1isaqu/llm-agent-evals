@@ -358,6 +358,31 @@ def test_agent_status_rollup_and_crosstab():
         db.source().queries.crosstab(WINDOW, "debtor", "x")
 
 
+def test_agreements_sharing_an_id_across_portfolios_are_counted_separately():
+    """Same id, same label, same agent, same status: still two agreements."""
+    db = Db()
+    for portfolio_id, amount, debt in ((1, 100.0, 71), (2, 200.0, 72)):
+        db.agreement(7, portfolio_id=portfolio_id, amount=amount, status=ACTIVE)
+        db.label(7, portfolio_id, debt, "P-1")
+    for portfolio_id, amount, debt in ((1, 30.0, 81), (2, 60.0, 82)):
+        db.agreement(8, portfolio_id=portfolio_id, amount=amount, status=EXCEPTION)
+        db.label(8, portfolio_id, debt, "P-1")
+    source = db.source()
+
+    status = rows_by(source.status_rollup(WINDOW), "portfolio_name", "status_id")
+    assert (status[("P-1", ACTIVE)]["qty"], status[("P-1", ACTIVE)]["amount"]) == (2, 300.0)
+    assert source.daily_rollup(WINDOW, "P-1")[0]["qty"] == 2
+    assert source.hourly_counts(WINDOW)[0]["qty"] == 2
+    by_agent = rows_by(source.agent_status_rollup(WINDOW), "agent_id", "status_id")
+    assert by_agent[("agent_01", ACTIVE)]["qty"] == 2
+    crosstab = rows_by(source.crosstab_rollup(WINDOW, "portfolio", "P-1"), "status_id")
+    assert crosstab[(ACTIVE,)]["qty"] == 2
+    (agent,) = source.agent_rollup(WINDOW)
+    assert (agent["agreement_count"], agent["slips_issued"]) == (2, 2)
+    assert (agent["first_installment_value"], agent["agreement_value"]) == (300.0, 300.0)
+    assert (agent["exception_count"], agent["exception_value"]) == (2, 90.0)
+
+
 # -- query construction: dialects, parameters and the read-only guard --------------------
 
 BUILDERS = {

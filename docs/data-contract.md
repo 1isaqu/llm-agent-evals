@@ -174,8 +174,9 @@ Definitions every implementation must respect:
 
 - `amount` in the status rollups is the first-installment amount, one per agreement, after
   de-duplication.
-- `agreement_count` counts agreements (`COUNT DISTINCT agreement_id`).
-  `agreement_count_by_contract` counts `(agreement, portfolio, debt)` triples. The second is only
+- `agreement_count` counts distinct `(agreement_id, portfolio_id)` pairs. Two agreements that share
+  an `agreement_id` in different portfolios are two agreements, also when they land in the same
+  group. `agreement_count_by_contract` counts `(agreement, portfolio, debt)` triples. The second is only
   for totals; ticket and conversion always use the first.
 - `agreement_value` is the sum over *all* installments of generated agreements whose first
   installment was issued in the window.
