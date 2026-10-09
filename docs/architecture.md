@@ -67,8 +67,8 @@ POST /chat  ->  ChatService.handle
 | `telemetry.py` | Observer protocol and a JSON-lines writer that never carries arguments or data. |
 | `service.py`, `wsgi.py`, `envelope.py` | The chat endpoint without a framework. |
 | `runtime.py` | Builds an `Agent` from the environment and a backend (`demo` or `sqlserver`). |
-| `evals/` | Scenario format, assertion layers, runner, metrics, reports. See `docs/eval-format.md`. |
-| `ledger/` | Ledger model, verifier and renderers. See `docs/ledger.md`. |
+| `evals/` | Scenario format, assertion layers, runner, metrics, reports. See [docs/eval-format.md](eval-format.md). |
+| `ledger/` | Ledger model, verifier and renderers. See [docs/ledger.md](ledger.md). |
 
 ## Extension points
 
@@ -77,7 +77,7 @@ schema and register it. The schema the model sees, the validation and the code a
 system prompt's tool list is generated from the registry, so it picks the tool up without edits.
 Add a scenario for it.
 
-To add a data backend, implement the nine methods of `DataSource` (see `docs/data-contract.md`)
+To add a data backend, implement the nine methods of `DataSource` (see [docs/data-contract.md](data-contract.md))
 and pass `{"line_name": source}` to `Agent`. Wrap it in `CachedSource` if the queries are slow.
 
 To add a model provider, implement `LLMClient.complete(ModelRequest) -> ModelTurn`. The two shipped

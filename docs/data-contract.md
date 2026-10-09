@@ -34,7 +34,7 @@ schema (`sources/schema.py`); on SQL Server any compatible type works (`datetime
 The table can hold several rows for the same `(agreement_id, portfolio_id, installment_no)`,
 for example when a system re-writes an installment. Every query keeps only the latest one (highest
 `issued_at`, then highest `record_id`). The window and status filters are applied *before* that
-ranking, inside the derived table. See `docs/decisions.md` for why.
+ranking, inside the derived table. See [docs/decisions.md](decisions.md) for why.
 
 ### `agreement_debts`: links agreements to debts
 

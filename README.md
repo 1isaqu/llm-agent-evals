@@ -67,7 +67,8 @@ provider SDK, web framework or pydantic dependency.
  evals/ scenarios -> runner -> checks -> metrics -> report       ledger/ entries -> verify -> render
 ```
 
-More detail in `docs/architecture.md`; the reasons behind the choices in `docs/decisions.md`.
+More detail in [docs/architecture.md](docs/architecture.md); the reasons behind the choices in
+[docs/decisions.md](docs/decisions.md).
 
 ## Quick start
 
@@ -132,8 +133,9 @@ skips the self-tests and costs real tokens.
 The agent sees nine rollup methods, and `sources/sql.py` implements them over eight neutral tables.
 Either map your database to those tables (views are fine) or implement the `DataSource` protocol
 yourself. The tables, the columns, the status sets and the row shapes are in
-`docs/data-contract.md`. Then calibrate `BusinessConfig` on your own data: every threshold in it
-is invented. `docs/data-sources.md` lists what data the repository contains and where yours fits.
+[docs/data-contract.md](docs/data-contract.md). Then calibrate `BusinessConfig` on your own data:
+every threshold in it is invented. [docs/data-sources.md](docs/data-sources.md) lists what data the
+repository contains and where yours fits.
 
 ```python
 import os
@@ -165,7 +167,7 @@ not against a live server. For another database, implement `DataSource` and skip
 
 ## Configuration
 
-Environment variables (see `.env.example`; the package does not read `.env` files by itself):
+Environment variables (see [.env.example](.env.example); the package does not read `.env` files by itself):
 
 | Variable | Default | Meaning |
 |---|---|---|
@@ -218,7 +220,7 @@ ruff check . && ruff format --check .
 
 The tests use small inline fixtures with invented values. SQL is executed on in-memory SQLite. The
 HTTP adapters are also driven end to end against a throwaway fake provider on `127.0.0.1`. Nothing
-needs a key or a database. CI (`.github/workflows/ci.yml`) runs the same commands with the mock
+needs a key or a database. CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs the same commands with the mock
 model only.
 
 The suite was run locally on Python 3.14. CI runs it on 3.11 to 3.14.
@@ -245,7 +247,7 @@ tests/         pytest suite
 
 ## Key design decisions
 
-Short list; the full reasoning is in `docs/decisions.md`.
+Short list; the full reasoning is in [docs/decisions.md](docs/decisions.md).
 
 - Guards are enforced inside `dispatch`, because a model can return a batch of calls in one turn.
 - Model mistakes are structured return values (`error_type`, `retryable`, `hint`), not exceptions.
@@ -288,4 +290,4 @@ real data, and every name, number and portfolio in it is invented.
 
 ## License
 
-MIT, see `LICENSE`.
+MIT, see [LICENSE](LICENSE).
