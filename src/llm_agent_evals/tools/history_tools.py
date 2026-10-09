@@ -57,7 +57,7 @@ def _rollup_series(ctx: ToolContext, args: dict[str, Any]) -> Any:
     points = rebucket(
         daily_points(rows, ctx.config, _ROLLUP_KPIS[kpi], window), kpi, args["granularity"]
     )
-    direction, change = trend(points) if points else ("flat", None)
+    direction, change = trend(points, ctx.config.trend_flat_band_pct) if points else ("flat", None)
     result: dict[str, Any] = {
         "kpi": kpi,
         "granularity": args["granularity"],

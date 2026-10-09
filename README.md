@@ -200,6 +200,7 @@ Environment variables (see `.env.example`; the package does not read `.env` file
 | `max_window_days` | `93` | Longest window a single tool call may span |
 | `plan_lookback_days`, `plan_late_remaining` | `150`, `3` | Plan-stage base and the "late" threshold |
 | `crosstab_limit`, `stage_portfolio_limit` | `12`, `8` | Rows returned by those views |
+| `trend_flat_band_pct` | `8.0` | A series whose second half differs from its first half by less than this many percent reads as flat |
 | `pace_first_hour`, `pace_last_hour`, `pace_min_history_days` | `9`, `18`, `3` | Daily-pace window |
 
 Guard numbers (`RunGuard`: ceiling of 8 steps, 60 seconds, 1,500 tokens per result, a 12,000-token

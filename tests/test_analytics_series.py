@@ -57,11 +57,24 @@ def test_unknown_metric_is_rejected():
 )
 def test_trend_compares_the_second_half_with_the_first(values, direction, change):
     points = [{"date": f"2026-03-{i + 1:02d}", "value": v} for i, v in enumerate(values)]
-    assert trend(points) == (direction, change)
+    assert trend(points, CONFIG.trend_flat_band_pct) == (direction, change)
+
+
+def test_the_flat_band_is_a_parameter_and_not_a_constant():
+    points = [
+        {"date": f"2026-03-{i + 1:02d}", "value": v} for i, v in enumerate([100, 100, 104, 104])
+    ]
+    assert trend(points, 8.0) == ("flat", 4.0)
+    assert trend(points, 3.0) == ("rising", 4.0)
+    assert trend(points, 4.0) == ("flat", 4.0)  # the edge of the band is still flat
+    falling = [
+        {"date": f"2026-03-{i + 1:02d}", "value": v} for i, v in enumerate([100, 100, 96, 96])
+    ]
+    assert trend(falling, 3.0) == ("falling", -4.0)
 
 
 def test_a_single_point_has_no_trend():
-    assert trend([{"date": "2026-03-01", "value": 5}]) == ("flat", None)
+    assert trend([{"date": "2026-03-01", "value": 5}], 8.0) == ("flat", None)
 
 
 def test_weeks_start_on_monday_and_months_on_the_first():

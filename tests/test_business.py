@@ -58,6 +58,12 @@ def test_thresholds_must_be_ordered():
         BusinessConfig(risk_low_max=50.0, risk_medium_max=40.0)
 
 
+@pytest.mark.parametrize("band", [-1.0, 100.0, 250.0])
+def test_the_trend_band_must_be_a_percentage_below_one_hundred(band):
+    with pytest.raises(ConfigError, match="trend_flat_band_pct"):
+        BusinessConfig(trend_flat_band_pct=band)
+
+
 def test_pace_hours_must_be_ordered():
     with pytest.raises(ConfigError, match="pace hours"):
         BusinessConfig(pace_first_hour=12, pace_last_hour=8)
