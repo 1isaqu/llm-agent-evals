@@ -35,3 +35,7 @@ mlruns/
 # runtime output
 *.jsonl
 *.log
+
+# Local notes
+HANDOFF.md
+NEXT-AI-SUMMARY.md
