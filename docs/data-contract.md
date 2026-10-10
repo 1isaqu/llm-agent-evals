@@ -211,4 +211,4 @@ versions of the same queries are executed in the test suite against small in-mem
 
 The connection string sets `ApplicationIntent=ReadOnly`, and `SqlDataSource` refuses to execute
 any statement that is not a single `SELECT` (or `WITH ... SELECT`). Give the database login only
-read permission as well: the guard is a second line of defence, not the first.
+read permission as well: the guard is a second line of defence.
