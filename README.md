@@ -305,7 +305,7 @@ not read by any query yet.
 
 ## Independence
 
-This is an independent portfolio project. It is not affiliated with any company, it contains no
+Built from problems I work on in debt collections and rewritten on synthetic data. It contains no
 real data, and every name, number and portfolio in it is invented.
 
 ## License
