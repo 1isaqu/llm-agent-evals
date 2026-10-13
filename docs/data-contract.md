@@ -8,7 +8,7 @@ in one of two ways:
 2. Implement `DataSource` yourself and return the rollup rows described in the second half of
    this page. The analytics, the tools and the agent do not care where the rows come from.
 
-All data in this repository is invented. Nothing here describes a real system.
+All data in this repository is invented.
 
 ## Part 1: the eight tables
 
