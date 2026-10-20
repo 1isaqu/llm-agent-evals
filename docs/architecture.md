@@ -64,7 +64,7 @@ POST /chat  ->  ChatService.handle
 | `compaction.py` | Replaces old tool-call groups with a short note when the budget nears its limit. |
 | `llm/` | Neutral message types, the scripted mock, the rule-based mock, and two HTTP adapters over `urllib`. |
 | `agent.py` | `Agent.run` and the loop. |
-| `telemetry.py` | Observer protocol and a JSON-lines writer that never carries arguments or data. |
+| `telemetry.py` | Observer protocol, a JSON-lines writer and an optional Langfuse adapter. Neither carries arguments or data. |
 | `service.py`, `wsgi.py`, `envelope.py` | The chat endpoint without a framework. |
 | `runtime.py` | Builds an `Agent` from the environment and a backend (`demo` or `sqlserver`). |
 | `evals/` | Scenario format, assertion layers, runner, metrics, reports. See [docs/eval-format.md](eval-format.md). |
