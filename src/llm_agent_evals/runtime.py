@@ -24,7 +24,7 @@ from llm_agent_evals.sources.base import CachedSource, DataSource
 from llm_agent_evals.sources.demo import DEMO_NOW, build_demo_connections
 from llm_agent_evals.sources.sql import SQLITE, SQLSERVER
 from llm_agent_evals.sources.sqlsource import SqlDataSource, connect_sqlserver
-from llm_agent_evals.telemetry import build_observer
+from llm_agent_evals.telemetry import build_langfuse_observer, build_observer, combine
 
 BACKENDS = ("demo", "sqlserver")
 
@@ -77,12 +77,17 @@ def build_agent(
             sources = sqlserver_sources(
                 os.environ if env is None else env, config, settings.cache_ttl_seconds
             )
+    langfuse = (
+        build_langfuse_observer(os.environ if env is None else env)
+        if settings.telemetry_langfuse
+        else None
+    )
     return Agent(
         llm or build_llm(llm_settings),
         sources,
         config=config,
         settings=settings,
-        observer=build_observer(settings.telemetry_path),
+        observer=combine(build_observer(settings.telemetry_path), langfuse),
         now=chosen_now or datetime.now,
         max_tokens=llm_settings.max_tokens,
         temperature=llm_settings.temperature,

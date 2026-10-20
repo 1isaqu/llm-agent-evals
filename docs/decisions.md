@@ -139,6 +139,11 @@ A tool-call event holds the tool name, a hash of the canonical arguments, timing
 outcome. That is enough to debug a slow tool and never puts business data in a log. Observers are
 shielded: a failing observer cannot fail a request.
 
+The optional Langfuse adapter keeps the rule by forwarding scalar payload fields only. It is
+switched on by `AGENT_TELEMETRY_LANGFUSE`, and the mere presence of `LANGFUSE_*` keys does not start
+it, because those keys are often exported for other tools. Asking for it without the keys or without
+the extra stops start-up with a `ConfigError`, so a typo cannot silently drop the telemetry.
+
 ## 18. The ledger is data
 
 A hand-edited ledger goes stale as soon as a test is renamed or a scenario is deleted. So the
@@ -149,6 +154,6 @@ ones.
 ## 19. Standard library only at runtime
 
 The model clients use `urllib`, the validator is a small JSON-schema subset, the service is plain
-WSGI and the SQL driver is an optional extra imported lazily. The package installs with no
-dependencies and the tests run offline. The cost is that none of these is as complete as the
-library it replaces.
+WSGI, and the SQL driver and the Langfuse client are optional extras imported lazily. The package
+installs with no dependencies and the tests run offline. The cost is that none of these is as
+complete as the library it replaces.

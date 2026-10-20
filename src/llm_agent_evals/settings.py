@@ -135,6 +135,7 @@ class AgentSettings:
     wall_clock_seconds: float = 60.0
     egress_policy: str = "redact"
     telemetry_path: str = ""
+    telemetry_langfuse: bool = False
     chat_enabled: bool = True
     cache_ttl_seconds: float = 45.0
     business_config_path: str = ""
@@ -157,6 +158,7 @@ class AgentSettings:
             wall_clock_seconds=_read_float(source, "AGENT_WALL_CLOCK_SECONDS", 60.0),
             egress_policy=policy,
             telemetry_path=_read(source, "AGENT_TELEMETRY_PATH"),
+            telemetry_langfuse=_read_bool(source, "AGENT_TELEMETRY_LANGFUSE", False),
             chat_enabled=_read_bool(source, "AGENT_CHAT_ENABLED", True),
             cache_ttl_seconds=_read_float(source, "AGENT_CACHE_TTL_SECONDS", 45.0),
             business_config_path=_read(source, "AGENT_BUSINESS_CONFIG"),

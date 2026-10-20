@@ -204,9 +204,23 @@ by itself):
 | `AGENT_EGRESS_POLICY` | `redact` | `redact` or `block` personal-looking values |
 | `AGENT_BUSINESS_CONFIG` | none | Path to a JSON file overriding `BusinessConfig` |
 | `AGENT_TELEMETRY_PATH` | none | JSON-lines file of safe events (no arguments, no data) |
+| `AGENT_TELEMETRY_LANGFUSE` | `false` | Also send those events to Langfuse. Needs the `langfuse` extra |
+| `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, `LANGFUSE_BASE_URL` | none | Read only when the switch above is on. Never logged. The base URL is for a self-hosted server |
 | `AGENT_CHAT_ENABLED` | `true` | Feature switch for the HTTP endpoint |
 | `DB_DRIVER`, `DB_HOST`, `DB_USER`, `DB_PASSWORD` | placeholders | SQL Server connection |
 | `DB_NAME`, `DB_NAME_AUTO`, `DB_NAME_CONSUMER` | placeholders | One database, or one per product line |
+
+### Telemetry
+
+In production I used Langfuse. This repository is the portable version: `AGENT_TELEMETRY_PATH`
+writes JSON lines with no dependencies, and an optional adapter sends the same events to Langfuse.
+To use it, run `pip install ".[langfuse]"`, set `AGENT_TELEMETRY_LANGFUSE=true` and export
+`LANGFUSE_PUBLIC_KEY` and `LANGFUSE_SECRET_KEY`. The two sinks can run together.
+
+Both carry the tool name, a hash of the arguments, timing and the guard's outcome, and never the
+arguments, the results or the question. Pass a `run_id` to `Agent.run` to get one Langfuse trace
+per request. The observations are written after each call returns, so the duration Langfuse shows
+is close to zero. Read `latency_ms` in the metadata instead.
 
 `BusinessConfig` parameters. Every default is invented and has to be calibrated on your own data:
 
@@ -282,6 +296,8 @@ Short list; the full reasoning is in [docs/decisions.md](docs/decisions.md).
 
 No live model provider and no live SQL Server were used. The two model adapters and the T-SQL are
 verified through injected fakes and generated text, so expect to adjust them on first contact.
+The Langfuse adapter was run with the real SDK (version 5) against a local stand-in for the
+server, and never against Langfuse itself.
 Scripted scenarios exercise the loop, the guards and the analytics. Only `eval --live` measures a
 real model, and it has never been run here. There is no judge layer for tone or completeness. The
 rule-based mock gives terse answers; it exists to drive the pipeline.
