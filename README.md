@@ -37,6 +37,11 @@ The reliability ledger is a data file, [ledger/entries.json](ledger/entries.json
 documents in `docs/` are generated from it. A verifier resolves every scenario and test it cites,
 and a test fails when the generated documents drift.
 
+Each tool call leaves a record with the tool name, a hash of the arguments, timing and the guard's
+outcome, and never the arguments, the results or the question. The records go to a JSON-lines file
+with no dependencies, and an optional adapter sends the same events to Langfuse (see
+[Telemetry](#telemetry)).
+
 The data contract has no customer name, document, phone or e-mail field. The two columns that
 could link a row to a customer once real data is mapped are `contact_events.debt_owner_id` and
 `debts.contract_no`, and no query reads either. An egress guard inspects every tool result before
